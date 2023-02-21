@@ -6,6 +6,9 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,9 +21,11 @@ public class MessageHandler {
     HashMap<String, DriverState> driverLookup;
     HashMap<String, String> driverIdLookup;
     String latestDriverId = "";
-    public MessageHandler(){
+    public Set<String> followDriverNames;
+    public MessageHandler(Set<String> followDriverNames){
         driverLookup = new HashMap<String, DriverState>();
         driverIdLookup = new HashMap<String, String>();
+        this.followDriverNames = followDriverNames;
     }
     private String pos(String position){
         switch (position){
@@ -33,7 +38,13 @@ public class MessageHandler {
             default:
                 return position + "th";
         }
-
+    }
+    private String cutDecimal(String d){
+        int dot = d.indexOf(".");
+        if (dot >= 1){
+            return d.substring(0,dot+2);
+        }
+        return d;
     }
     public String message(String message) {
         StringBuilder englishMessage = new StringBuilder("");
@@ -43,7 +54,7 @@ public class MessageHandler {
             if (parts.length >= 2) {
                 String command = parts[0];
                 String argument = parts[1];
-                System.out.println("                 " + command + ", " + argument);
+//                System.out.println("                 " + command + ", " + argument);
                 switch (command) {
                     case "init":
                         latestDriverId="";
@@ -87,10 +98,10 @@ public class MessageHandler {
                         DriverState d = driverLookup.get("r"+driverId);
                         // Don't repeat driver name for each statistic. Just say it when it changes.
                         String driverEnglish = "";
-                        if(!latestDriverId.equals(driverId)){
+                        if(!latestDriverId.equals(driverId) && Objects.nonNull(d)){
                             driverEnglish = String.format("Car %s %s ", d.carNr, d.name);
                         }
-                        if(argument.equals("#")){
+                        if(argument.equals("#") && followThisDriver(d)){
                             String newMessage = String.format("%sin %s position.\n", driverEnglish, pos(parts[2]));
                             englishMessage.append(newMessage);
                             latestDriverId=driverId;
@@ -101,16 +112,26 @@ public class MessageHandler {
                         String c = driverAndCMatcher.group(2);
                         DriverState d = driverLookup.get("r"+driverId);
                         String driverEnglish = "";
-                        if(!latestDriverId.equals(driverId)){
+                        if(!latestDriverId.equals(driverId) && Objects.nonNull(d)){
                             driverEnglish = String.format("Car %s %s ", d.carNr, d.name);
                         }
-                        if(c.equals("8")){
-                            String newMessage = String.format("%slap time %s.\n",driverEnglish, parts[2]);
+                        if(c.equals("8") && followThisDriver(d)){
+                            String newMessage = String.format("%slap time %s.\n",driverEnglish, cutDecimal(parts[2]));
                             englishMessage.append(newMessage);
                             latestDriverId=driverId;
                         }
-                        if(c.equals("10") && parts.length>2){
-                            String newMessage = String.format("%sgap %s.\n", driverEnglish, parts[2]);
+                        if(c.equals("6") && followThisDriver(d)){
+                            String newMessage = String.format("%s %s sector %s.\n",driverEnglish, pos("1"), cutDecimal(parts[2]));
+                            englishMessage.append(newMessage);
+                            latestDriverId=driverId;
+                        }
+                        if(c.equals("7") && followThisDriver(d)){
+                            String newMessage = String.format("%s %s sector %s.\n",driverEnglish, pos("2"), cutDecimal(parts[2]));
+                            englishMessage.append(newMessage);
+                            latestDriverId=driverId;
+                        }
+                        if(c.equals("10") && parts.length>2 && followThisDriver(d)){
+                            String newMessage = String.format("%sgap %s.\n", driverEnglish, cutDecimal(parts[2]));
                             englishMessage.append(newMessage);
                             latestDriverId=driverId;
                         }
@@ -120,6 +141,14 @@ public class MessageHandler {
         }
         System.out.println(englishMessage);
         return englishMessage.toString();
+    }
+
+    private boolean followThisDriver(DriverState d){
+        for(String driverName: followDriverNames){
+            if(d.name.startsWith(driverName))
+                return true;
+        }
+        return false;
     }
 
     private void parseInitHtml(String html){
@@ -154,7 +183,7 @@ public class MessageHandler {
             driver.id = row.attr("data-id");
             Elements c4 = row.select("[data-id="+driver.id+"c4]");
             driver.carNr = c4.first().text();
-            driver.name = row.select("[data-id="+driver.id+"c5]").first().text();
+            driver.name = row.select("[data-id="+driver.id+"c5]").first().text().toLowerCase();
             driverIdLookup.put(driver.name, driver.id);
             driverLookup.put(driver.id, driver);
         }
