@@ -1,7 +1,9 @@
 package cc.openlife.virtualvaltteri;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
@@ -24,6 +26,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
@@ -46,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private MessageHandler handler;
     private TextToSpeech tts;
     Set<String> followDriverNames;
-    private String initialMessage = "James it's Valtteri.";
+    private final String initialMessage = "James. It's Valtteri.";
     MyWebsocketListener webSocketListener = new MyWebsocketListener() {
         @Override
         public void onMessageReceived(final String message) {
@@ -82,11 +85,15 @@ public class MainActivity extends AppCompatActivity {
             testRun = properties.getProperty("testrun");
             ttsPitch = Float.parseFloat(properties.getProperty("tts.pitch", "" + ttsPitch));
             ttsVoice = properties.getProperty("tts.voice", ttsVoice);
+            // This is the main audio stream managed by your hardware up-down key
+            setVolumeControlStream(AudioManager.STREAM_MUSIC);
         } catch (IOException e) {
             System.out.println("Failed to read properties file: " + e.getMessage());
         }
         SharedPreferences prefs = getSharedPreferences("VirtualValtteri", 0);
         followDriverNames = prefs.getStringSet("followDrivers", new HashSet<String>(Arrays.asList("albert", "henrik")));
+        handler = new MessageHandler(this.followDriverNames);
+
         // Note that driver Ids are only valid for the day
         Set<String> followDriverIds = prefs.getStringSet("followDriverIds", new HashSet<String>(Collections.emptyList()));
         String driverIdDate = prefs.getString("driverIdDate", "1970-01-01");
@@ -144,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
     public void ttsDone() {
         mTextView = findViewById(R.id.text_view);
         tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);
-        handler = new MessageHandler(this.followDriverNames);
         AssetManager assetManager = getAssets();
 
 //        System.out.println("testrun is: "+testRun);
