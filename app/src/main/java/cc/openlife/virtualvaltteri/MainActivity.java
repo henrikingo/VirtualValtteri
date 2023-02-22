@@ -251,14 +251,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    @Override
-    public void onPause(){
-        super.onPause();
-        if(tts !=null){
-            tts.stop();
-            tts.shutdown();
-        }
-    }
 
     @Override
     protected void onDestroy() {
