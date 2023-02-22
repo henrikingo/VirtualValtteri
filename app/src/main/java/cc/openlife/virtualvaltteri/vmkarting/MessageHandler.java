@@ -144,6 +144,10 @@ public class MessageHandler {
     }
 
     private boolean followThisDriver(DriverState d){
+        // If no filter specified, just read out everything
+        if (followDriverNames.isEmpty())
+            return true;
+
         for(String driverName: followDriverNames){
             if(d.name.startsWith(driverName))
                 return true;
