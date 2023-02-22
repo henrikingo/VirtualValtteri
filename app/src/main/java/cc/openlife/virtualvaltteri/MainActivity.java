@@ -3,6 +3,8 @@ package cc.openlife.virtualvaltteri;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -12,6 +14,11 @@ import android.text.TextWatcher;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.PowerManager;
+import android.net.Uri;
+import android.provider.Settings;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -91,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Failed to read properties file: " + e.getMessage());
         }
         SharedPreferences prefs = getSharedPreferences("VirtualValtteri", 0);
-        followDriverNames = prefs.getStringSet("followDrivers", new HashSet<String>(Arrays.asList("albert", "henrik")));
+        followDriverNames = prefs.getStringSet("followDrivers", new HashSet<String>(Arrays.asList()));
         handler = new MessageHandler(this.followDriverNames);
 
         // Note that driver Ids are only valid for the day
@@ -133,6 +140,24 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         });
+
+
+        // Run also when in background
+        Intent intent = new Intent();
+        String packageName = getPackageName();
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+
+        if (!pm.isIgnoringBatteryOptimizations(packageName)){
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                    intent.setData(Uri.parse("package:" + packageName));
+                    startActivity(intent);
+                }
+            });
+        }
+
 
         float finalTtsPitch = ttsPitch;
         tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
