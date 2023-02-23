@@ -12,6 +12,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cc.openlife.virtualvaltteri.speaker.Speaker;
+import cc.openlife.virtualvaltteri.speaker.VeryShort;
+
 public class MessageHandler {
     /**
      * Translate messages from vmkarting live data stream websocket into English.
@@ -20,35 +23,20 @@ public class MessageHandler {
      */
     HashMap<String, DriverState> driverLookup;
     HashMap<String, String> driverIdLookup;
-    String latestDriverId = "";
     public Set<String> followDriverNames;
+    private String sessionType = "Session";
     public MessageHandler(Set<String> followDriverNames){
         driverLookup = new HashMap<String, DriverState>();
         driverIdLookup = new HashMap<String, String>();
         this.followDriverNames = followDriverNames;
     }
-    private String pos(String position){
-        switch (position){
-            case "1":
-                return "1st";
-            case "2":
-                return "2nd";
-            case "3":
-                return "3rd";
-            default:
-                return position + "th";
-        }
-    }
-    private String cutDecimal(String d){
-        int dot = d.indexOf(".");
-        if (dot >= 1){
-            return d.substring(0,dot+2);
-        }
-        return d;
-    }
+    private Speaker speaker = new VeryShort();
+
     public String message(String message) {
+        //System.out.println(message);
         StringBuilder englishMessage = new StringBuilder("");
         String[] lines = message.split("\n");
+
         for (String line : lines) {
             String[] parts = line.split("\\|");
             if (parts.length >= 2) {
@@ -57,25 +45,20 @@ public class MessageHandler {
 //                System.out.println("                 " + command + ", " + argument);
                 switch (command) {
                     case "init":
-                        latestDriverId="";
+                        englishMessage.append(speaker.init(argument));
                         if (argument.equals("p")) {
-                            englishMessage.append("Practice session starting.\n");
+                            sessionType = "Practice session";
                         } else if (argument.equals("r")) {
-                            englishMessage.append("Race starting!\n");
+                            sessionType = "Race";
                         } else {
-                            englishMessage.append("New session.\n");
+                            sessionType = "Session";
                         }
                         break;
                     case "title1":
-                        // Session title
-                        if (parts.length >= 3) {
-                            englishMessage.append(parts[2]).append("\n");
-                        }
-                        break;
                     case "title2":
                         // Session title
                         if (parts.length >= 3) {
-                            englishMessage.append(parts[2]).append("\n");
+                            englishMessage.append(speaker.title(parts[2])).append("\n");
                         }
                         break;
                     case "grid":
@@ -85,26 +68,30 @@ public class MessageHandler {
                         System.out.println(driverIdLookup.toString());
                         System.out.println(driverLookup.toString());
                         break;
+                    case "com":
+                        if(parts.length >= 3 && parts[2].contains("<span data-flag=\"chequered\"></span>Finish")){
+                            englishMessage.append(speaker.finish(sessionType));
+                        }
+                        //Free up resources
+                        //Note that the driverId is constant through the day. In the future we may want to keep the drivers in the follow list.
+                        driverLookup.clear();
+                        driverIdLookup.clear();
+                        break;
                 }
                 if (command.startsWith("r")){
-//                    System.out.println(command);
+                    //System.out.println(command);
                     Pattern justDriverPattern = Pattern.compile("r(\\d+)");
                     Pattern driverAndCPattern = Pattern.compile("r(\\d+)c(\\d+)");
                     Matcher justDriverMatcher = justDriverPattern.matcher(command);
                     Matcher driverAndCMatcher = driverAndCPattern.matcher(command);
-//                    System.out.println("match: "+justDriverMatcher.matches() + " " + driverAndCMatcher.matches());
+                    //System.out.println("match: "+justDriverMatcher.matches() + " " + driverAndCMatcher.matches());
                     if(justDriverMatcher.matches()){
                         String driverId = justDriverMatcher.group(1);
                         DriverState d = driverLookup.get("r"+driverId);
                         // Don't repeat driver name for each statistic. Just say it when it changes.
-                        String driverEnglish = "";
-                        if(!latestDriverId.equals(driverId) && Objects.nonNull(d)){
-                            driverEnglish = String.format("Car %s %s ", d.carNr, d.name);
-                        }
                         if(argument.equals("#") && followThisDriver(d)){
-                            String newMessage = String.format("%sin %s position.\n", driverEnglish, pos(parts[2]));
+                            String newMessage = speaker.position(parts[2], d);
                             englishMessage.append(newMessage);
-                            latestDriverId=driverId;
                         }
                     }
                     if(driverAndCMatcher.matches()){
@@ -112,28 +99,17 @@ public class MessageHandler {
                         String c = driverAndCMatcher.group(2);
                         DriverState d = driverLookup.get("r"+driverId);
                         String driverEnglish = "";
-                        if(!latestDriverId.equals(driverId) && Objects.nonNull(d)){
-                            driverEnglish = String.format("Car %s %s ", d.carNr, d.name);
-                        }
                         if(c.equals("8") && followThisDriver(d)){
-                            String newMessage = String.format("%slap time %s.\n",driverEnglish, cutDecimal(parts[2]));
-                            englishMessage.append(newMessage);
-                            latestDriverId=driverId;
+                            englishMessage.append(speaker.lap(parts[2], d));
                         }
                         if(c.equals("6") && followThisDriver(d)){
-                            String newMessage = String.format("%s %s sector %s.\n",driverEnglish, pos("1"), cutDecimal(parts[2]));
-                            englishMessage.append(newMessage);
-                            latestDriverId=driverId;
+                            englishMessage.append(speaker.sector("1", parts[2], d));
                         }
                         if(c.equals("7") && followThisDriver(d)){
-                            String newMessage = String.format("%s %s sector %s.\n",driverEnglish, pos("2"), cutDecimal(parts[2]));
-                            englishMessage.append(newMessage);
-                            latestDriverId=driverId;
+                            englishMessage.append(speaker.sector("2", parts[2], d));
                         }
                         if(c.equals("10") && parts.length>2 && followThisDriver(d)){
-                            String newMessage = String.format("%sgap %s.\n", driverEnglish, cutDecimal(parts[2]));
-                            englishMessage.append(newMessage);
-                            latestDriverId=driverId;
+                            englishMessage.append(speaker.gap(parts[2], d));
                         }
                     }
                 }
@@ -145,7 +121,7 @@ public class MessageHandler {
 
     private boolean followThisDriver(DriverState d){
         // If no filter specified, just read out everything
-        if (followDriverNames.isEmpty())
+        if (d!=null && followDriverNames.isEmpty())
             return true;
 
         for(String driverName: followDriverNames){

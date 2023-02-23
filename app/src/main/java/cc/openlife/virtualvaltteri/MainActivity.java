@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private MessageHandler handler;
     private TextToSpeech tts;
     Set<String> followDriverNames;
-    private final String initialMessage = "James. It's Valtteri.";
+    private final String initialMessage = "Valtteri. It's James.";
     MyWebsocketListener webSocketListener = new MyWebsocketListener() {
         @Override
         public void onMessageReceived(final String message) {
@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        System.out.println("Creating main app activity...");
         // Initialize UI elements
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
