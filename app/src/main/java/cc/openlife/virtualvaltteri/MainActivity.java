@@ -180,59 +180,26 @@ public class MainActivity extends AppCompatActivity {
         AssetManager assetManager = getAssets();
 
 //        System.out.println("testrun is: "+testRun);
-        if (testRun.startsWith("true")){
+        if (testRun.startsWith("true")) {
             System.out.println("Doing test run with test data, no network connections created.");
             try {
                 InputStream testDataInputStream = assetManager.open("testdata.txt");
                 BufferedReader testDataReader = new BufferedReader(new InputStreamReader(testDataInputStream));
-                       String line = null;
-                       try {
-                           while ((line = testDataReader.readLine()) != null) {
-                               if(line.equals(""))
-                                   continue;
+                String line = null;
+                try {
+                    while ((line = testDataReader.readLine()) != null) {
+                        if (line.equals(""))
+                            continue;
 //                               System.out.println("first line: " + line);
 
-                               StringBuilder message = new StringBuilder();
-                               message.append(line).append("\n");
-                               while ((line = testDataReader.readLine()) != null && !line.equals("")) {
+                        StringBuilder message = new StringBuilder();
+                        message.append(line).append("\n");
+                        while ((line = testDataReader.readLine()) != null && !line.equals("")) {
 //                                   System.out.println("multiline: " + line);
-                                   message.append(line).append("\n");
-                               }
-                               String englishMessage = handler.message(message.toString());
-                               if(! (englishMessage.equals(""))){
-                                   tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
-                                   runOnUiThread(new Runnable() {
-                                       @Override
-                                       public void run() {
-                                           mTextView.setText(englishMessage);
-                                       }
-                                   });
-                               }
-                           }
-                       } catch(IOException ex){
-                           ex.printStackTrace();
-                       } finally{
-                           try {
-                               testDataInputStream.close();
-                           } catch (IOException e) {
-                               e.printStackTrace();
-                           }
-                       }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Connect to WebSocket server
-        if (websocketUrl != null) {
-            try {
-                URI serverUri = new URI(websocketUrl);
-                mWebSocket = new WebSocketManager(serverUri, new MyWebsocketListener() {
-                    @Override
-                    public void onMessageReceived(final String message) {
-                        // Called when a message is received from the server
-                        String englishMessage = handler.message(message);
-                        if(! (englishMessage.equals(""))) {
+                            message.append(line).append("\n");
+                        }
+                        String englishMessage = handler.message(message.toString());
+                        if (!(englishMessage.equals(""))) {
                             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
                             runOnUiThread(new Runnable() {
                                 @Override
@@ -242,14 +209,72 @@ public class MainActivity extends AppCompatActivity {
                             });
                         }
                     }
-                    public void onConnected(){System.out.println("Websocket connected");}
-                    public void onDisconnected(){System.out.println("Websocket disconnected");}
-                    public void onError(Exception ex){System.err.println("websocket error: " + ex);}
-                });
-                mWebSocket.connect();
-            } catch (URISyntaxException e) {
-                System.out.println("Invalid WebSocket URI: " + e.getMessage());
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                } finally {
+                    try {
+                        testDataInputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+        }
+
+        // Connect to WebSocket server
+        if (websocketUrl != null) {
+            connectWebsocket();
+        }
+    }
+
+    private void connectWebsocket(){
+        try {
+            URI serverUri = new URI(websocketUrl);
+            mWebSocket = new WebSocketManager(serverUri, new MyWebsocketListener() {
+                @Override
+                public void onMessageReceived(final String message) {
+                    // Called when a message is received from the server
+                    String englishMessage = handler.message(message);
+                    if(! (englishMessage.equals(""))) {
+                        tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                mTextView.setText(englishMessage);
+                            }
+                        });
+                    }
+                }
+                public void onConnected(){System.out.println("Websocket connected");}
+                public void onDisconnected(){
+                    System.out.println("Websocket disconnected - scheduling a re-connect in a sec...");
+                    Timer t = new Timer();
+                    TimerTask task = new TimerTask() {
+                        @Override
+                        public void run() {
+                            connectWebsocket();
+                        }
+                    };
+                    t.schedule(task, 987);
+                }
+                public void onError(Exception ex){
+                    System.err.println("websocket error: " + ex);
+                    System.err.println("Scheduling a re-connect in a minute...");
+                    Timer t = new Timer();
+                    TimerTask task = new TimerTask() {
+                        @Override
+                        public void run() {
+                            connectWebsocket();
+                        }
+                    };
+                    t.schedule(task, 6000);
+                }
+            });
+            mWebSocket.connect();
+        } catch (URISyntaxException e) {
+            System.out.println("Invalid WebSocket URI: " + e.getMessage());
         }
     }
 
