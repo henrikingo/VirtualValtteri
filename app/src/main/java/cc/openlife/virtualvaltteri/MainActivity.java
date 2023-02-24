@@ -58,7 +58,6 @@ public class MainActivity extends AppCompatActivity {
     String ttsVoice = "default";
     private WebSocketManager mWebSocket;
     private TextView mTextView;
-    private MultiAutoCompleteTextView driverNamesDropDown;
     private RecyclerView driverSelectorList;
     RecyclerView.Adapter<MainActivity.DriverSelectorHolder> driverSelectorAdapter;
     private MessageHandler handler;
@@ -84,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
         // Initialize UI elements
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
-        driverNamesDropDown = findViewById(R.id.driverNamesDropDown);
         // Note that driver Ids are only valid for the day
         SharedPreferences prefs = getSharedPreferences("VirtualValtteri", 0);
         followDriverIds = prefs.getStringSet("followDriverIds", new HashSet<String>(Collections.emptyList()));
@@ -134,32 +132,6 @@ public class MainActivity extends AppCompatActivity {
         }
         followDriverNames = prefs.getStringSet("followDrivers", new HashSet<String>(Arrays.asList()));
         handler = new MessageHandler(this.followDriverNames);
-
-        driverNamesDropDown.setText(String.join("\n", followDriverNames));
-        driverNamesDropDown.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                return;
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                String[] names = driverNamesDropDown.getText().toString().split("\\n");
-                System.out.println(names);
-                Set<String> followDriverNames = new HashSet<String>(Arrays.asList(names));
-                handler.followDriverNames = followDriverNames;
-                SharedPreferences.Editor prefsEdit = prefs.edit();
-                String driverIdDate = formattedDate;
-                prefsEdit.putString("followDriverNames", String.join("\n", followDriverNames));
-                prefsEdit.putString("driverIdDate", formattedDate);
-                prefsEdit.apply();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                return;
-            }
-        });
 
         driverSelectorList = findViewById(R.id.driverSelectorList);
         driverSelectorAdapter = new RecyclerView.Adapter<MainActivity.DriverSelectorHolder>() {

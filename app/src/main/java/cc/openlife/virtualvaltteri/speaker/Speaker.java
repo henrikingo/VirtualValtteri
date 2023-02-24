@@ -50,6 +50,9 @@ public class Speaker {
 
     private String latestDriver = "";
     public String driver(DriverState d) {
+        if (d==null)
+            return "";
+
         String driverString =  String.format("Car %s %s ", d.carNr, d.name);
         if(!latestDriver.equals(d.id)) {
             latestDriver = d.id;

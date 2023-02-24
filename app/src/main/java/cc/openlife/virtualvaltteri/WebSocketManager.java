@@ -13,6 +13,7 @@ public class WebSocketManager {
     private WebSocketClient mWebSocketClient;
     private URI serverUri;
     private MainActivity activity;
+    private boolean isRestarting = false;
 
     public WebSocketManager(String websocketUrl, MainActivity activity)
             throws URISyntaxException {
@@ -44,18 +45,29 @@ public class WebSocketManager {
         }
         public void  onClose(int code, String reason, boolean remote){
             System.out.println("Websocket disconnected - scheduling a re-connect in a sec...");
+            if(isRestarting){
+                System.err.println("Already scheduled to restart. Not doing anything in this thread.");
+                return;
+            }
+            isRestarting = true;
             Timer t = new Timer();
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     mWebSocketClient = new MyWebSocketClient(serverUri, activity);
                     mWebSocketClient.connect();
+                    isRestarting = false;
                 }
             };
             t.schedule(task, 987);
         }
         public void onError(Exception ex){
             System.err.println("websocket error: " + ex);
+            if(isRestarting){
+                System.err.println("Already scheduled to restart. Not doing anything in this thread.");
+                return;
+            }
+
             System.err.println("Scheduling a re-connect in a minute...");
             Timer t = new Timer();
             TimerTask task = new TimerTask() {
@@ -63,6 +75,7 @@ public class WebSocketManager {
                 public void run() {
                     mWebSocketClient = new MyWebSocketClient(serverUri, activity);
                     mWebSocketClient.connect();
+                    isRestarting = false;
                 }
             };
             t.schedule(task, 6000);
