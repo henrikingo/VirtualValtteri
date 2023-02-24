@@ -14,18 +14,54 @@
         android:text="Hello World!"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/driverNamesDropDown" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <MultiAutoCompleteTextView
         android:id="@+id/driverNamesDropDown"
-        android:layout_width="386dp"
-        android:layout_height="130dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="128dp"
+        android:layout_width="325dp"
+        android:layout_height="8dp"
+        android:layout_marginTop="100dp"
         android:hint="Type the beginning of the name of a driver to follow"
         android:text="Search driver names..."
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/speakerSelector" />
+
+    <Spinner
+        android:id="@+id/speakerSelector"
+        android:layout_width="248dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:background="@android:drawable/btn_default"
+        android:popupBackground="@android:drawable/bottom_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:listitem="@android:layout/list_content" />
+
+    <TextView
+        android:id="@+id/speakerSelectorLabel"
+        android:layout_width="116dp"
+        android:layout_height="47dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="32dp"
+        android:labelFor="@id/speakerSelector"
+        android:text="Mode:"
+        app:layout_constraintEnd_toStartOf="@+id/speakerSelector"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/driverSelectorList"
+        android:layout_width="320dp"
+        android:layout_height="316dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="13dp"
+        android:layout_marginEnd="32dp"
+        app:layout_constraintBottom_toTopOf="@+id/text_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/driverNamesDropDown"
+        tools:listitem="@layout/recycler_view_item_1" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

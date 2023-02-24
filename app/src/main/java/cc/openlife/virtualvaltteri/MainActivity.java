@@ -1,19 +1,27 @@
 package cc.openlife.virtualvaltteri;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.MultiAutoCompleteTextView;
+import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.PowerManager;
@@ -21,7 +29,6 @@ import android.net.Uri;
 import android.provider.Settings;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,16 +40,15 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.prefs.PreferenceChangeEvent;
-import java.util.stream.Collectors;
 
+import cc.openlife.virtualvaltteri.speaker.Speaker;
+import cc.openlife.virtualvaltteri.speaker.VeryShort;
 import cc.openlife.virtualvaltteri.vmkarting.MessageHandler;
 public class MainActivity extends AppCompatActivity {
     // Get WebSocket URL from properties file
@@ -53,28 +59,24 @@ public class MainActivity extends AppCompatActivity {
     private WebSocketManager mWebSocket;
     private TextView mTextView;
     private MultiAutoCompleteTextView driverNamesDropDown;
+    private RecyclerView driverSelectorList;
+    RecyclerView.Adapter<MainActivity.DriverSelectorHolder> driverSelectorAdapter;
     private MessageHandler handler;
     private TextToSpeech tts;
-    Set<String> followDriverNames;
+    public Set<String> followDriverNames;
+    Set<String> followDriverIds = new HashSet<String>(Collections.emptyList());
     private final String initialMessage = "Valtteri. It's James.";
-    MyWebsocketListener webSocketListener = new MyWebsocketListener() {
-        @Override
-        public void onMessageReceived(final String message) {
-            // Called when a message is received from the server
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    String englishMessage = handler.message(message);
-                    mTextView.setText(englishMessage);
-                }
-            });
+    public View speakerSelectorList;
+
+    public void speakerSelectorOnClick(){
+        Spinner speakerSelectorList = findViewById(R.id.speakerSelector);
+        String selectedText = speakerSelectorList.getSelectedItem().toString();
+        if(selectedText.equals("Basic team radio")){
+            handler.speaker = new Speaker();
+        }else if(selectedText.equals("Just numbers")){
+            handler.speaker = new VeryShort();
         }
-        public void onConnected(){System.out.println("Websocket connected");}
-        public void onDisconnected(){System.out.println("Websocket disconnected");}
-        public void onError(Exception ex){System.err.println("websocket error: " + ex);}
-    };
-
-
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,6 +85,38 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
         driverNamesDropDown = findViewById(R.id.driverNamesDropDown);
+        // Note that driver Ids are only valid for the day
+        SharedPreferences prefs = getSharedPreferences("VirtualValtteri", 0);
+        followDriverIds = prefs.getStringSet("followDriverIds", new HashSet<String>(Collections.emptyList()));
+        String driverIdDate = prefs.getString("driverIdDate", "1970-01-01");
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        String formattedDate = df.format(c);
+        if(!driverIdDate.equals(formattedDate)){
+            SharedPreferences.Editor prefsEdit = prefs.edit();
+            followDriverIds = new HashSet<>(Collections.emptyList());
+            prefsEdit.putStringSet("followDriverIds", followDriverIds);
+            driverIdDate = formattedDate;
+            prefsEdit.putString("driverIdDate", formattedDate);
+            prefsEdit.apply();
+        }
+
+        Spinner speakerSelectorList = findViewById(R.id.speakerSelector);
+        ArrayAdapter<CharSequence>adapter= ArrayAdapter.createFromResource(this, R.array.speakers, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        speakerSelectorList.setAdapter(adapter);
+        speakerSelectorList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    speakerSelectorOnClick();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                    handler.speaker = new Speaker();
+                }
+            });
+
 
         AssetManager assetManager = getAssets();
         try {
@@ -98,24 +132,9 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             System.out.println("Failed to read properties file: " + e.getMessage());
         }
-        SharedPreferences prefs = getSharedPreferences("VirtualValtteri", 0);
         followDriverNames = prefs.getStringSet("followDrivers", new HashSet<String>(Arrays.asList()));
         handler = new MessageHandler(this.followDriverNames);
 
-        // Note that driver Ids are only valid for the day
-        Set<String> followDriverIds = prefs.getStringSet("followDriverIds", new HashSet<String>(Collections.emptyList()));
-        String driverIdDate = prefs.getString("driverIdDate", "1970-01-01");
-        Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String formattedDate = df.format(c);
-        if(!driverIdDate.equals(formattedDate)){
-            SharedPreferences.Editor prefsEdit = prefs.edit();
-            followDriverIds = new HashSet<>(Collections.emptyList());
-            prefsEdit.putStringSet("followDriverIds", followDriverIds);
-            driverIdDate = formattedDate;
-            prefsEdit.putString("driverIdDate", formattedDate);
-            prefsEdit.apply();
-        }
         driverNamesDropDown.setText(String.join("\n", followDriverNames));
         driverNamesDropDown.addTextChangedListener(new TextWatcher() {
             @Override
@@ -141,6 +160,38 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
         });
+
+        driverSelectorList = findViewById(R.id.driverSelectorList);
+        driverSelectorAdapter = new RecyclerView.Adapter<MainActivity.DriverSelectorHolder>() {
+            @NonNull
+            @Override
+            public DriverSelectorHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                System.out.println("onCreateViewHolder");
+                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_item_1, parent, false);
+                return new MainActivity.DriverSelectorHolder(view, followDriverNames);
+            }
+
+            @Override
+            public void onBindViewHolder(@NonNull MainActivity.DriverSelectorHolder holder, int position) {
+                System.out.println("onBindViewHolder");
+                ArrayList<String> sortedDrivers = new ArrayList<>(handler.driverIdLookup.keySet());
+                Collections.sort(sortedDrivers);
+                System.out.println("onBindViewHolder: " + sortedDrivers);
+                System.out.println(followDriverNames);
+                String driverName = sortedDrivers.get(position);
+                System.out.println("Creating DriverSelectorHolder for " + driverName);
+                holder.driverName.setText(driverName);
+                holder.follow.setChecked(followDriverNames.contains(driverName));
+            }
+            @Override
+            public int getItemCount() {
+                System.out.println("getItemCount " + handler.driverIdLookup.size());
+                return handler.driverIdLookup.size();
+            }
+        };
+
+        driverSelectorList.setAdapter(driverSelectorAdapter);
+        driverSelectorList.setLayoutManager(new LinearLayoutManager(this));
 
 
         // Run also when in background
@@ -207,6 +258,7 @@ public class MainActivity extends AppCompatActivity {
                                     mTextView.setText(englishMessage);
                                 }
                             });
+
                         }
                     }
                 } catch (IOException ex) {
@@ -228,53 +280,33 @@ public class MainActivity extends AppCompatActivity {
             connectWebsocket();
         }
     }
-
-    private void connectWebsocket(){
+    public void connectWebsocket(){
         try {
-            URI serverUri = new URI(websocketUrl);
-            mWebSocket = new WebSocketManager(serverUri, new MyWebsocketListener() {
+            this.mWebSocket = new WebSocketManager(websocketUrl, this);
+            this.mWebSocket.connect();
+        }
+        catch(URISyntaxException ex) {
+            System.err.println("Server URI is wrongly formatted: " + ex);
+            System.err.println("Can't really do much without the websocket. Giving up.");
+        }
+    }
+
+    public void processMessage(String message){
+        String englishMessage = handler.message(message);
+        if(! (englishMessage.equals(""))) {
+            tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
+            runOnUiThread(new Runnable() {
                 @Override
-                public void onMessageReceived(final String message) {
-                    // Called when a message is received from the server
-                    String englishMessage = handler.message(message);
-                    if(! (englishMessage.equals(""))) {
-                        tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                mTextView.setText(englishMessage);
-                            }
-                        });
-                    }
-                }
-                public void onConnected(){System.out.println("Websocket connected");}
-                public void onDisconnected(){
-                    System.out.println("Websocket disconnected - scheduling a re-connect in a sec...");
-                    Timer t = new Timer();
-                    TimerTask task = new TimerTask() {
-                        @Override
-                        public void run() {
-                            connectWebsocket();
-                        }
-                    };
-                    t.schedule(task, 987);
-                }
-                public void onError(Exception ex){
-                    System.err.println("websocket error: " + ex);
-                    System.err.println("Scheduling a re-connect in a minute...");
-                    Timer t = new Timer();
-                    TimerTask task = new TimerTask() {
-                        @Override
-                        public void run() {
-                            connectWebsocket();
-                        }
-                    };
-                    t.schedule(task, 6000);
+                public void run() {
+                    mTextView.setText(englishMessage);
                 }
             });
-            mWebSocket.connect();
-        } catch (URISyntaxException e) {
-            System.out.println("Invalid WebSocket URI: " + e.getMessage());
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    driverSelectorAdapter.notifyDataSetChanged();
+                }
+            });
         }
     }
 
@@ -285,10 +317,57 @@ public class MainActivity extends AppCompatActivity {
         // Close WebSocket connection
         if (mWebSocket != null) {
             mWebSocket.close();
+            mWebSocket = null;
         }
         if(tts !=null){
             tts.stop();
             tts.shutdown();
+        }
+    }
+
+    public void processMesssage(String message) {
+        String englishMessage = handler.message(message);
+        if(! (englishMessage.equals(""))) {
+            tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mTextView.setText(englishMessage);
+                }
+            });
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    driverSelectorAdapter.notifyDataSetChanged();
+                }
+            });
+        }
+    }
+
+    public static class DriverSelectorHolder extends RecyclerView.ViewHolder {
+        TextView driverName;
+        CheckBox follow;
+        public Set<String> followDriverNames;
+        public DriverSelectorHolder(View view, Set<String> followDriverNames){
+            super(view);
+            driverName = view.findViewById(R.id.recyclerTextView1);
+            follow = view.findViewById(R.id.recyclerCheckBox);
+            this.followDriverNames = followDriverNames;
+
+            // Define click listener for the ViewHolder's View.
+            follow.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("Clicked on a driver " + driverName.getText() + " " + follow.isChecked());
+                    if(follow.isChecked()){
+                        followDriverNames.add((String) driverName.getText());
+                    }
+                    else {
+                        followDriverNames.remove(driverName.getText());
+                    }
+                    System.out.println(followDriverNames);
+                }
+            });
         }
     }
 }

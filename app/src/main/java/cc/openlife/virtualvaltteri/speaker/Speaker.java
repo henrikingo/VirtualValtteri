@@ -33,7 +33,7 @@ public class Speaker {
     }
     public String init(String argument) {
         if (argument.equals("p")) {
-            return "Practice session starting.";
+            return "Practice session starting.\n";
         } else if (argument.equals("r")) {
             return "Race starting!\n";
         } else {
@@ -66,7 +66,7 @@ public class Speaker {
         return String.format("%s lap %s.\n", driver(d), cutDecimal(time));
     }
     public String sector(String sectorNr, String time, DriverState d) {
-        return String.format("%s %s sector %s.\n", driver(d), pos(sectorNr), time);
+        return String.format("%s %s sector %s.\n", driver(d), pos(sectorNr), cutDecimal(time));
     }
     public String gap(String time, DriverState d) {
         return String.format("%s gap %s.\n", driver(d), cutDecimal(time));

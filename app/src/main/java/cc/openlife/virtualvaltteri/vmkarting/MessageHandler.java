@@ -1,5 +1,7 @@
 package cc.openlife.virtualvaltteri.vmkarting;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -12,6 +14,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import cc.openlife.virtualvaltteri.MainActivity;
 import cc.openlife.virtualvaltteri.speaker.Speaker;
 import cc.openlife.virtualvaltteri.speaker.VeryShort;
 
@@ -21,16 +24,17 @@ public class MessageHandler {
      * @param message One or more rows, where an individual row might look like `init|p|`
      * @return English words to be spoken to the driver, like "New practice session".
      */
-    HashMap<String, DriverState> driverLookup;
-    HashMap<String, String> driverIdLookup;
+    public HashMap<String, DriverState> driverLookup;
+    public HashMap<String, String> driverIdLookup;
     public Set<String> followDriverNames;
+    public RecyclerView.Adapter<MainActivity.DriverSelectorHolder> driverSelectorAdapter;
     private String sessionType = "Session";
     public MessageHandler(Set<String> followDriverNames){
         driverLookup = new HashMap<String, DriverState>();
         driverIdLookup = new HashMap<String, String>();
         this.followDriverNames = followDriverNames;
     }
-    private Speaker speaker = new VeryShort();
+    public Speaker speaker = new VeryShort();
 
     public String message(String message) {
         //System.out.println(message);
@@ -64,9 +68,12 @@ public class MessageHandler {
                     case "grid":
                         // This is a complex HTML table that initializes the live resutls web page.
                         // However, it does contain valuable information about the drivers, in particular their names.
+                        driverLookup.clear();
+                        driverIdLookup.clear();
                         parseInitHtml(parts[2]);
                         System.out.println(driverIdLookup.toString());
                         System.out.println(driverLookup.toString());
+                        //driverSelectorAdapter.notifyDataSetChanged();
                         break;
                     case "com":
                         if(parts.length >= 3 && parts[2].contains("<span data-flag=\"chequered\"></span>Finish")){
@@ -121,7 +128,7 @@ public class MessageHandler {
 
     private boolean followThisDriver(DriverState d){
         // If no filter specified, just read out everything
-        if (d!=null && followDriverNames.isEmpty())
+        if (d==null || followDriverNames.isEmpty())
             return true;
 
         for(String driverName: followDriverNames){

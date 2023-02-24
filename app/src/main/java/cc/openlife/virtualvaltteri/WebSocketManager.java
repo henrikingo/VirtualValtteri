@@ -1,41 +1,77 @@
 package cc.openlife.virtualvaltteri;
 
+import android.speech.tts.TextToSpeech;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class WebSocketManager {
     private WebSocketClient mWebSocketClient;
+    private URI serverUri;
+    private MainActivity activity;
 
-    public WebSocketManager(URI serverUri, final MyWebsocketListener listener) {
-        mWebSocketClient = new WebSocketClient(serverUri) {
-            @Override
-            public void onOpen(ServerHandshake handshakedata) {
-                listener.onConnected();
-            }
-
-            @Override
-            public void onMessage(String message) {
-                listener.onMessageReceived(message);
-            }
-
-            @Override
-            public void onClose(int code, String reason, boolean remote) {
-                listener.onDisconnected();
-            }
-
-            @Override
-            public void onError(Exception ex) {
-                listener.onError(ex);
-            }
-        };
+    public WebSocketManager(String websocketUrl, MainActivity activity)
+            throws URISyntaxException {
+        this.serverUri = new URI(websocketUrl);
+        this.activity = activity;
+    }
+    public WebSocketClient connect() {
+        mWebSocketClient = new MyWebSocketClient(serverUri, activity);
+        mWebSocketClient.connect();
+        return mWebSocketClient;
     }
 
-    public void connect() {
-        mWebSocketClient.connect();
+    public class MyWebSocketClient extends  WebSocketClient {
+        MainActivity activity;
+        URI serverUri;
+        MyWebSocketClient(URI serverUri, MainActivity activity) {
+            super(serverUri);
+            this.activity = activity;
+            this.serverUri = serverUri;
+        }
+
+        @Override
+        public void onOpen(ServerHandshake handshakedata) {
+            System.out.println("Websocket connected");
+        }
+        public void onMessage(final String message) {
+            // Called when a message is received from the server
+            activity.processMesssage(message);
+        }
+        public void  onClose(int code, String reason, boolean remote){
+            System.out.println("Websocket disconnected - scheduling a re-connect in a sec...");
+            Timer t = new Timer();
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    mWebSocketClient = new MyWebSocketClient(serverUri, activity);
+                    mWebSocketClient.connect();
+                }
+            };
+            t.schedule(task, 987);
+        }
+        public void onError(Exception ex){
+            System.err.println("websocket error: " + ex);
+            System.err.println("Scheduling a re-connect in a minute...");
+            Timer t = new Timer();
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    mWebSocketClient = new MyWebSocketClient(serverUri, activity);
+                    mWebSocketClient.connect();
+                }
+            };
+            t.schedule(task, 6000);
+        }
     }
 
     public void close() {
         mWebSocketClient.close();
+        mWebSocketClient = null;
     }
+
 }
