@@ -14,7 +14,7 @@ public class VeryShort extends Speaker {
     }
 
     public String position(String position, DriverState d) {
-        return String.format("%s.\n", pos(position));
+        return String.format("P %s\n", position);
     }
     @Override
     public String lap(String time, DriverState d) {
