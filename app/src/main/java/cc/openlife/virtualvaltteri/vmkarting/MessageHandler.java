@@ -79,10 +79,11 @@ public class MessageHandler {
                         if(parts.length >= 3 && parts[2].contains("<span data-flag=\"chequered\"></span>Finish")){
                             englishMessage.append(speaker.finish(sessionType));
                         }
-                        //Free up resources
-                        //Note that the driverId is constant through the day. In the future we may want to keep the drivers in the follow list.
-                        driverLookup.clear();
-                        driverIdLookup.clear();
+                        // Can't clear the lists this early. Sector times keep dropping in after the cheqcuered flag.
+                        // And if we don't have the lists, you can no longer select a name, and then it just reads all the.
+                        // times without knowing the driver they belong to.
+                        // driverLookup.clear();
+                        // driverIdLookup.clear();
                         break;
                 }
                 if (command.startsWith("r")){
