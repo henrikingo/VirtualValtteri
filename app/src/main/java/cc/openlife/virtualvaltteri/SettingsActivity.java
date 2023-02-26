@@ -3,7 +3,7 @@ package cc.openlife.virtualvaltteri;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.Preference;
+import androidx.preference.Preference;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -36,8 +36,9 @@ public class SettingsActivity extends AppCompatActivity {
             if (savedInstanceState != null) {
                 return;
             }
+
             // below line is to inflate our fragment.
-            getFragmentManager().beginTransaction().add(R.id.idFrameLayout, new SettingsFragment(prefChanged)).commit();
+            getSupportFragmentManager().beginTransaction().add(R.id.idFrameLayout, new SettingsFragment(prefChanged)).commit();
         }
     }
 }

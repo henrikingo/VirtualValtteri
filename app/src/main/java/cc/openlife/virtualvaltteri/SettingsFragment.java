@@ -3,9 +3,9 @@ package cc.openlife.virtualvaltteri;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.preference.PreferenceScreen;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceScreen;
 import android.widget.Spinner;
 
 import androidx.annotation.Nullable;
@@ -13,11 +13,17 @@ import androidx.annotation.Nullable;
 import cc.openlife.virtualvaltteri.speaker.Speaker;
 import cc.openlife.virtualvaltteri.speaker.VeryShort;
 
-public class SettingsFragment extends PreferenceFragment {
+public class SettingsFragment extends PreferenceFragmentCompat {
     private Preference.OnPreferenceChangeListener prefChanged;
     public SettingsFragment(Preference.OnPreferenceChangeListener prefChanged){
         this.prefChanged = prefChanged;
     }
+
+    @Override
+    public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
+        onCreate(savedInstanceState);
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
