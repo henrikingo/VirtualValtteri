@@ -51,7 +51,7 @@ public class MessageHandler {
                     case "init":
                         englishMessage.append(speaker.init(argument));
                         if (argument.equals("p")) {
-                            sessionType = "Practice session";
+                            sessionType = "Session";
                         } else if (argument.equals("r")) {
                             sessionType = "Race";
                         } else {

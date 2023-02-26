@@ -67,17 +67,7 @@ public class MainActivity extends AppCompatActivity {
     public Set<String> followDriverNames;
     Set<String> followDriverIds = new HashSet<String>(Collections.emptyList());
     private final String initialMessage = "Valtteri. It's James.";
-    public View speakerSelectorList;
 
-    public void speakerSelectorOnClick(){
-        Spinner speakerSelectorList = findViewById(R.id.speakerSelector);
-        String selectedText = speakerSelectorList.getSelectedItem().toString();
-        if(selectedText.equals("Basic team radio")){
-            handler.speaker = new Speaker();
-        }else if(selectedText.equals("Just numbers")){
-            handler.speaker = new VeryShort();
-        }
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,25 +100,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
-
-
-
-        Spinner speakerSelectorList = findViewById(R.id.speakerSelector);
-        ArrayAdapter<CharSequence>adapter= ArrayAdapter.createFromResource(this, R.array.speakers, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        speakerSelectorList.setAdapter(adapter);
-        speakerSelectorList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                    speakerSelectorOnClick();
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
-                    handler.speaker = new Speaker();
-                }
-            });
-
 
         AssetManager assetManager = getAssets();
         try {
