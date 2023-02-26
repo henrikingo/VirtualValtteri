@@ -33,7 +33,7 @@ public class Speaker {
     }
     public String init(String argument) {
         if (argument.equals("p")) {
-            return "Practice session starting.\n";
+            return "Session starting.\n";
         } else if (argument.equals("r")) {
             return "Race starting!\n";
         } else {
