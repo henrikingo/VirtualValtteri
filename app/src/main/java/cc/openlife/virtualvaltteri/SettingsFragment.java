@@ -21,10 +21,19 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
-        onCreate(savedInstanceState);
+        //super.onCreatePreferences(savedInstanceState, rootKey);
+        System.out.println("SettingsFragment.onCreate() " + savedInstanceState);
+
+        // below line is used to add preference
+        // fragment from our xml folder.
+        addPreferencesFromResource(R.xml.settings);
+
+        // Register listeners ...
+        final Preference prefList = findPreference("speaker_key");
+        prefList.setOnPreferenceChangeListener(prefChanged);
     }
 
-    @Override
+/*    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("SettingsFragment.onCreate() " + savedInstanceState);
@@ -37,4 +46,5 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         final Preference prefList = findPreference("speaker_key");
         prefList.setOnPreferenceChangeListener(prefChanged);
     }
+*/
 }
