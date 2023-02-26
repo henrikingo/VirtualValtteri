@@ -1,5 +1,6 @@
 package cc.openlife.virtualvaltteri;
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.media.AudioManager;
@@ -13,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.Spinner;
@@ -98,10 +100,22 @@ public class MainActivity extends AppCompatActivity {
             prefsEdit.putString("driverIdDate", formattedDate);
             prefsEdit.apply();
         }
+        Button settingsBtn = findViewById(R.id.settingsButton);
+        settingsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // opening a new intent to open settings activity.
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                ///startActivity(intent);
+                startActivityForResult(intent, 1);
+            }
+        });
+
+
 
         Spinner speakerSelectorList = findViewById(R.id.speakerSelector);
         ArrayAdapter<CharSequence>adapter= ArrayAdapter.createFromResource(this, R.array.speakers, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         speakerSelectorList.setAdapter(adapter);
         speakerSelectorList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -196,7 +210,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("MainActivity.onActivityResult() " +requestCode + " " + resultCode + " " + data);
+        if (requestCode == 1) {
+            if (resultCode == Activity.RESULT_OK) {
+                String speaker = data.getStringExtra("settings_speaker");
+                switch (speaker) {
+                    case "Speaker":
+                        System.out.println("Switch to (default) Speaker speaker mode.");
+                        handler.speaker = new Speaker();
+                        break;
+                    case "VeryShort":
+                        System.out.println("Switch to VeryShort speaker mode.");
+                        handler.speaker = new VeryShort();
+                        break;
+                }
+            }
+        }
+    }
     public void ttsDone() {
         mTextView = findViewById(R.id.text_view);
         tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);

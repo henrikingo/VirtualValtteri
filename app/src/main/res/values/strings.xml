@@ -4,4 +4,18 @@
         <item>Basic team radio</item>
         <item>Just numbers</item>
     </string-array>
+
+    <string name="speaker_label">Radio mode</string>
+    <string-array name="speaker_choices">
+        <item>Basic team radio</item>
+        <item>Just numbers</item>
+    </string-array>
+    <string-array name="speaker_class_names">
+        <item>Speaker</item>
+        <item>VeryShort</item>
+    </string-array>
+    <string name="speaker_default">Speaker</string>
+    <string name="speaker_summary">Different speakers say different things, using more or less words.</string>
+    <string name="speaker_title">Speaker</string>
+    <string name="key_speaker">speaker_key</string>
 </resources>
