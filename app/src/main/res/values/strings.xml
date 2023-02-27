@@ -19,7 +19,7 @@
     <string name="speaker_title">Speaker</string>
     <string name="key_speaker">speaker_key</string>
 
-    <string name="drivers_title">Follow drivers(s)</string>
+    <string name="drivers_title">Select driver(s) from current race</string>
     <string name="drivers_key">drivers_key</string>
     <string-array name="drivers_initial_entries">
         <item>You can select driver(s) here once the race has started.</item>

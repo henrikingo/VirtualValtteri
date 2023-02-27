@@ -96,7 +96,17 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // opening a new intent to open settings activity.
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                // Send list of drivers in this race...
+                ArrayList<String> sortedDrivers = new ArrayList<>(handler.driverIdLookup.keySet());
+                Collections.sort(sortedDrivers);
+                ArrayList<CharSequence> samesamebutdifferent = new ArrayList<>();
+                for(String s: sortedDrivers){
+                    samesamebutdifferent.add((CharSequence) s);
+                }
+                System.out.println("Putting driverlist in the intent sending to settings: " + sortedDrivers);
+                intent.putCharSequenceArrayListExtra("sortedDrivers", samesamebutdifferent);
                 ///startActivity(intent);
+                //  TODO: Fix deprecated
                 startActivityForResult(intent, 1);
             }
         });
@@ -188,15 +198,25 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_OK) {
                 String speaker = data.getStringExtra("settings_speaker");
-                switch (speaker) {
-                    case "Speaker":
-                        System.out.println("Switch to (default) Speaker speaker mode.");
-                        handler.speaker = new Speaker();
-                        break;
-                    case "VeryShort":
-                        System.out.println("Switch to VeryShort speaker mode.");
-                        handler.speaker = new VeryShort();
-                        break;
+                if(speaker!=null){
+                    switch (speaker) {
+                        case "Speaker":
+                            System.out.println("Switch to (default) Speaker speaker mode.");
+                            handler.speaker = new Speaker();
+                            break;
+                        case "VeryShort":
+                            System.out.println("Switch to VeryShort speaker mode.");
+                            handler.speaker = new VeryShort();
+                            break;
+                    }
+                }
+                ArrayList<CharSequence> driversCS = data.getCharSequenceArrayListExtra("settings_drivers");
+                if(driversCS!=null && driversCS.size()>0){
+                    followDriverNames.clear();
+                    for(CharSequence cs: driversCS){
+                        followDriverNames.add((String) cs);
+                    }
+                    System.out.println("onActivityResult() followDriverNames" + followDriverNames);
                 }
             }
         }
