@@ -60,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
     String ttsVoice = "default";
     private WebSocketManager mWebSocket;
     private TextView mTextView;
-    private RecyclerView driverSelectorList;
-    RecyclerView.Adapter<MainActivity.DriverSelectorHolder> driverSelectorAdapter;
     private MessageHandler handler;
     private TextToSpeech tts;
     public Set<String> followDriverNames;
@@ -127,39 +125,6 @@ public class MainActivity extends AppCompatActivity {
         }
         followDriverNames = prefs.getStringSet("followDrivers", new HashSet<String>(Arrays.asList()));
         handler = new MessageHandler(this.followDriverNames);
-
-        driverSelectorList = findViewById(R.id.driverSelectorList);
-        driverSelectorAdapter = new RecyclerView.Adapter<MainActivity.DriverSelectorHolder>() {
-            @NonNull
-            @Override
-            public DriverSelectorHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                System.out.println("onCreateViewHolder");
-                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_view_item_1, parent, false);
-                return new MainActivity.DriverSelectorHolder(view, followDriverNames);
-            }
-
-            @Override
-            public void onBindViewHolder(@NonNull MainActivity.DriverSelectorHolder holder, int position) {
-                System.out.println("onBindViewHolder");
-                ArrayList<String> sortedDrivers = new ArrayList<>(handler.driverIdLookup.keySet());
-                Collections.sort(sortedDrivers);
-                System.out.println("onBindViewHolder: " + sortedDrivers);
-                System.out.println(followDriverNames);
-                String driverName = sortedDrivers.get(position);
-                System.out.println("Creating DriverSelectorHolder for " + driverName);
-                holder.driverName.setText(driverName);
-                holder.follow.setChecked(followDriverNames.contains(driverName));
-            }
-            @Override
-            public int getItemCount() {
-                System.out.println("getItemCount " + handler.driverIdLookup.size());
-                return handler.driverIdLookup.size();
-            }
-        };
-
-        driverSelectorList.setAdapter(driverSelectorAdapter);
-        driverSelectorList.setLayoutManager(new LinearLayoutManager(this));
-
 
         // Run also when in background
         Intent intent = new Intent();
@@ -297,12 +262,6 @@ public class MainActivity extends AppCompatActivity {
                     mTextView.setText(englishMessage);
                 }
             });
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    driverSelectorAdapter.notifyDataSetChanged();
-                }
-            });
         }
     }
 
@@ -329,39 +288,6 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     mTextView.setText(englishMessage);
-                }
-            });
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    driverSelectorAdapter.notifyDataSetChanged();
-                }
-            });
-        }
-    }
-
-    public static class DriverSelectorHolder extends RecyclerView.ViewHolder {
-        TextView driverName;
-        CheckBox follow;
-        public Set<String> followDriverNames;
-        public DriverSelectorHolder(View view, Set<String> followDriverNames){
-            super(view);
-            driverName = view.findViewById(R.id.recyclerTextView1);
-            follow = view.findViewById(R.id.recyclerCheckBox);
-            this.followDriverNames = followDriverNames;
-
-            // Define click listener for the ViewHolder's View.
-            follow.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    System.out.println("Clicked on a driver " + driverName.getText() + " " + follow.isChecked());
-                    if(follow.isChecked()){
-                        followDriverNames.add((String) driverName.getText());
-                    }
-                    else {
-                        followDriverNames.remove(driverName.getText());
-                    }
-                    System.out.println(followDriverNames);
                 }
             });
         }

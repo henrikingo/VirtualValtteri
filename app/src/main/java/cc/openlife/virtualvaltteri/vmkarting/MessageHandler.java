@@ -27,7 +27,6 @@ public class MessageHandler {
     public HashMap<String, DriverState> driverLookup;
     public HashMap<String, String> driverIdLookup;
     public Set<String> followDriverNames;
-    public RecyclerView.Adapter<MainActivity.DriverSelectorHolder> driverSelectorAdapter;
     private String sessionType = "Session";
     public MessageHandler(Set<String> followDriverNames){
         driverLookup = new HashMap<String, DriverState>();
@@ -73,7 +72,6 @@ public class MessageHandler {
                         parseInitHtml(parts[2]);
                         System.out.println(driverIdLookup.toString());
                         System.out.println(driverLookup.toString());
-                        //driverSelectorAdapter.notifyDataSetChanged();
                         break;
                     case "com":
                         if(parts.length >= 3 && parts[2].contains("<span data-flag=\"chequered\"></span>Finish")){
