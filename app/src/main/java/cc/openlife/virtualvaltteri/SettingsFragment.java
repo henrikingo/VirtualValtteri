@@ -26,8 +26,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     @Override
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
-        //super.onCreatePreferences(savedInstanceState, rootKey);
-        System.out.println("SettingsFragment.onCreate() " + savedInstanceState);
+        System.out.println("SettingsFragment.onCreate() " + rootKey + " " + savedInstanceState);
 
         // below line is used to add preference
         // fragment from our xml folder.

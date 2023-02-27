@@ -1,20 +1,17 @@
 package cc.openlife.virtualvaltteri.vmkarting;
 
-import androidx.recyclerview.widget.RecyclerView;
-
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import cc.openlife.virtualvaltteri.MainActivity;
 import cc.openlife.virtualvaltteri.speaker.Speaker;
 import cc.openlife.virtualvaltteri.speaker.VeryShort;
 
@@ -35,8 +32,9 @@ public class MessageHandler {
     }
     public Speaker speaker = new VeryShort();
 
-    public String message(String message) {
+    public Map<String, String> message(String message) {
         //System.out.println(message);
+        Map<String,String> englishMessageMap = new HashMap<>();
         StringBuilder englishMessage = new StringBuilder("");
         String[] lines = message.split("\n");
 
@@ -45,7 +43,7 @@ public class MessageHandler {
             if (parts.length >= 2) {
                 String command = parts[0];
                 String argument = parts[1];
-//                System.out.println("                 " + command + ", " + argument);
+                System.out.println(line);// + "\n" + command + ", " + argument + ", " + (parts.length >= 3 ? parts[2]: ""));
                 switch (command) {
                     case "init":
                         englishMessage.append(speaker.init(argument));
@@ -56,12 +54,14 @@ public class MessageHandler {
                         } else {
                             sessionType = "Session";
                         }
+                        englishMessageMap.put("sessionType", sessionType);
                         break;
                     case "title1":
                     case "title2":
                         // Session title
                         if (parts.length >= 3) {
                             englishMessage.append(speaker.title(parts[2])).append("\n");
+                            englishMessageMap.put(command, parts[2]);
                         }
                         break;
                     case "grid":
@@ -72,10 +72,12 @@ public class MessageHandler {
                         parseInitHtml(parts[2]);
                         System.out.println(driverIdLookup.toString());
                         System.out.println(driverLookup.toString());
+                        englishMessageMap.put("driversCount", "" + driverIdLookup.keySet().size());
                         break;
                     case "com":
                         if(parts.length >= 3 && parts[2].contains("<span data-flag=\"chequered\"></span>Finish")){
                             englishMessage.append(speaker.finish(sessionType));
+                            englishMessageMap.put("finish", sessionType);
                         }
                         // Can't clear the lists this early. Sector times keep dropping in after the cheqcuered flag.
                         // And if we don't have the lists, you can no longer select a name, and then it just reads all the.
@@ -94,9 +96,10 @@ public class MessageHandler {
                     if(justDriverMatcher.matches()){
                         String driverId = justDriverMatcher.group(1);
                         DriverState d = driverLookup.get("r"+driverId);
-                        // Don't repeat driver name for each statistic. Just say it when it changes.
+
                         if(argument.equals("#") && followThisDriver(d)){
-                            String newMessage = speaker.position(parts[2], d);
+                            d.rank = parts[2];
+                            String newMessage = speaker.position(d.rank, d);
                             englishMessage.append(newMessage);
                         }
                     }
@@ -105,24 +108,43 @@ public class MessageHandler {
                         String c = driverAndCMatcher.group(2);
                         DriverState d = driverLookup.get("r"+driverId);
                         String driverEnglish = "";
-                        if(c.equals("8") && followThisDriver(d)){
+
+                        if(!englishMessageMap.containsKey("carNr"))
+                            englishMessageMap.put("carNr", d.carNr);
+
+                        if((c.equals("8")||c.equals("9")) && followThisDriver(d)){
                             englishMessage.append(speaker.lap(parts[2], d));
+                            englishMessageMap.put("lap", parts[2]);
+                            englishMessageMap.put("carNr", d.carNr);
                         }
                         if(c.equals("6") && followThisDriver(d)){
                             englishMessage.append(speaker.sector("1", parts[2], d));
+                            if(d.carNr.equals(englishMessageMap.get("carNr"))) {
+                                englishMessageMap.put("s1", parts[2]);
+                                englishMessageMap.put("carNr", d.carNr);
+                            }
                         }
                         if(c.equals("7") && followThisDriver(d)){
                             englishMessage.append(speaker.sector("2", parts[2], d));
+                            englishMessageMap.put("s2", parts[2]);
+                            englishMessageMap.put("carNr", d.carNr);
                         }
                         if(c.equals("10") && parts.length>2 && followThisDriver(d)){
                             englishMessage.append(speaker.gap(parts[2], d));
+                            englishMessageMap.put("gap", parts[2]);
+                            englishMessageMap.put("carNr", d.carNr);
                         }
+                        if(d.rank != null)
+                                if( !d.rank.equals(""))
+                                    englishMessageMap.put("position", d.rank);
                     }
                 }
             }
         }
         System.out.println(englishMessage);
-        return englishMessage.toString();
+        englishMessageMap.put("message", englishMessage.toString());
+        System.out.println(englishMessageMap);
+        return englishMessageMap;
     }
 
     private boolean followThisDriver(DriverState d){
@@ -170,6 +192,7 @@ public class MessageHandler {
             Elements c4 = row.select("[data-id="+driver.id+"c4]");
             driver.carNr = c4.first().text();
             driver.name = row.select("[data-id="+driver.id+"c5]").first().text().toLowerCase();
+            driver.rank = row.select("[data-id="+driver.id+"c3]").first().text().toLowerCase();
             driverIdLookup.put(driver.name, driver.id);
             driverLookup.put(driver.id, driver);
         }

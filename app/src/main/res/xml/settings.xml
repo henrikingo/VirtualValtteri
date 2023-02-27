@@ -8,7 +8,7 @@
                 <cc.openlife.virtualvaltteri.DynamicMultiSelectListPreference
                     android:key="drivers_key"
                     android:dialogTitle="@string/drivers_title"
-                    android:summary="%s"
+                    android:summary=""
                     android:title="@string/drivers_title"
                     android:entries="@array/drivers_initial_entries"
                     android:entryValues="@array/drivers_initial_values"/>

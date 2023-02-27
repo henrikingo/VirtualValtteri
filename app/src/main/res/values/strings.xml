@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Virtual Valtteri</string>
+    <string name="app_name">Virtual Valtteri 🏁</string>
     <string-array name="speakers">
         <item>Basic team radio</item>
         <item>Just numbers</item>
@@ -27,5 +27,5 @@
     <string-array name="drivers_initial_values">
         <item>default</item>
     </string-array>
-
+    <string name="largeTextDefault">0:00.0</string>
 </resources>

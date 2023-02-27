@@ -1,6 +1,7 @@
 package cc.openlife.virtualvaltteri;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.media.AudioManager;
@@ -22,6 +23,9 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -42,8 +46,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.Timer;
@@ -60,6 +66,9 @@ public class MainActivity extends AppCompatActivity {
     String ttsVoice = "default";
     private WebSocketManager mWebSocket;
     private TextView mTextView;
+    private TextView mTextViewLarge;
+    private TextView mTextViewCarNr;
+    private TextView mTextViewPosition;
     private MessageHandler handler;
     private TextToSpeech tts;
     public Set<String> followDriverNames;
@@ -73,21 +82,15 @@ public class MainActivity extends AppCompatActivity {
         // Initialize UI elements
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
-        // Note that driver Ids are only valid for the day
-        SharedPreferences prefs = getSharedPreferences("VirtualValtteri", 0);
-        followDriverIds = prefs.getStringSet("followDriverIds", new HashSet<String>(Collections.emptyList()));
-        String driverIdDate = prefs.getString("driverIdDate", "1970-01-01");
-        Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        String formattedDate = df.format(c);
-        if(!driverIdDate.equals(formattedDate)){
-            SharedPreferences.Editor prefsEdit = prefs.edit();
-            followDriverIds = new HashSet<>(Collections.emptyList());
-            prefsEdit.putStringSet("followDriverIds", followDriverIds);
-            driverIdDate = formattedDate;
-            prefsEdit.putString("driverIdDate", formattedDate);
-            prefsEdit.apply();
-        }
+        mTextViewLarge = findViewById(R.id.idLargeText);
+        mTextViewCarNr = findViewById(R.id.idCarNr);
+        mTextViewPosition = findViewById(R.id.idPosition);
+
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        // Configure the behavior of the hidden system bars.
+        windowInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
+
         Button settingsBtn = findViewById(R.id.settingsButton);
         settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +111,26 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
+        SharedPreferences prefs = getSharedPreferences(getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
+        System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
+        followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
+        String speaker = prefs.getString("speaker_key", null);
+
+        handler = new MessageHandler(this.followDriverNames);
+        if(speaker!=null) {
+            switch (speaker) {
+                case "Speaker":
+                    System.out.println("Switch to (default) Speaker speaker mode.");
+                    handler.speaker = new Speaker();
+                    break;
+                case "VeryShort":
+                    System.out.println("Switch to VeryShort speaker mode.");
+                    handler.speaker = new VeryShort();
+                    break;
+            }
+        }
+
 
         AssetManager assetManager = getAssets();
         try {
@@ -123,8 +146,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             System.out.println("Failed to read properties file: " + e.getMessage());
         }
-        followDriverNames = prefs.getStringSet("followDrivers", new HashSet<String>(Arrays.asList()));
-        handler = new MessageHandler(this.followDriverNames);
 
         // Run also when in background
         Intent intent = new Intent();
@@ -155,6 +176,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    protected String cutDecimal(String d){
+        int dot = d.indexOf(".");
+        if (dot >= 1){
+            return d.substring(0,dot+2);
+        }
+        return d;
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -210,13 +239,25 @@ public class MainActivity extends AppCompatActivity {
 //                                   System.out.println("multiline: " + line);
                             message.append(line).append("\n");
                         }
-                        String englishMessage = handler.message(message.toString());
+                        Map<String,String> englishMessageMap = handler.message(message.toString());
+                        String englishMessage = englishMessageMap.get("message");
                         if (!(englishMessage.equals(""))) {
                             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+
                                     mTextView.setText(englishMessage);
+                                    if(englishMessageMap.containsKey("s1"))
+                                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s1")));
+                                    if(englishMessageMap.containsKey("s2"))
+                                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s2")));
+                                    if(englishMessageMap.containsKey("lap"))
+                                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("lap")));
+                                    if(englishMessageMap.containsKey("position"))
+                                        mTextViewPosition.setText("P"+englishMessageMap.get("position"));
+                                    if(englishMessageMap.containsKey("carNr"))
+                                        mTextViewCarNr.setText(englishMessageMap.get("carNr"));
                                 }
                             });
 
@@ -252,19 +293,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void processMessage(String message){
-        String englishMessage = handler.message(message);
-        if(! (englishMessage.equals(""))) {
-            tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    mTextView.setText(englishMessage);
-                }
-            });
-        }
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -281,14 +309,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void processMesssage(String message) {
-        String englishMessage = handler.message(message);
+        Map<String,String> englishMessageMap = handler.message(message);
+        String englishMessage = englishMessageMap.get("message");
+        String messageType = englishMessageMap.get("type");
         if(! (englishMessage.equals(""))) {
             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    mTextView.setText(englishMessage);
-                }
+
+                    if(mTextView!=null)
+                        mTextView.setText(englishMessage);
+                    if(englishMessageMap.containsKey("s1") && mTextViewLarge!=null)
+                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s1")));
+                    if(englishMessageMap.containsKey("s2") && mTextViewLarge!=null)
+                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s2")));
+                    if(englishMessageMap.containsKey("lap") && mTextViewLarge!=null)
+                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("lap")));
+                    if(englishMessageMap.containsKey("carNr") && mTextViewCarNr!=null) {
+                        if (!(englishMessageMap.get("carNr").equals(mTextViewCarNr.getText())))
+                            // Reset the position field since we don't know the position of the new car
+                            mTextViewPosition.setText("");
+                        mTextViewCarNr.setText(englishMessageMap.get("carNr"));
+                    }
+                    // Of course if we have the position, great :-)
+                    if(englishMessageMap.containsKey("position") && mTextViewPosition!=null)
+                        mTextViewPosition.setText("P"+englishMessageMap.get("position"));
+               }
             });
         }
     }

@@ -3,6 +3,8 @@ package cc.openlife.virtualvaltteri;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+
+import androidx.annotation.LayoutRes;
 import androidx.preference.Preference;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +20,13 @@ public class SettingsActivity extends AppCompatActivity {
     private CharSequence[] sortedDriversArray;
     private Intent returnIntent;
 
+    public SettingsActivity(){
+        super();
+    }
+
+    public SettingsActivity(@LayoutRes int res){
+        super(res);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
