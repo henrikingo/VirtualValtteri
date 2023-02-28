@@ -109,7 +109,7 @@ public class MessageHandler {
                         DriverState d = driverLookup.get("r"+driverId);
                         String driverEnglish = "";
 
-                        if(!englishMessageMap.containsKey("carNr"))
+                        if(!englishMessageMap.containsKey("carNr") && d!=null)
                             englishMessageMap.put("carNr", d.carNr);
 
                         if((c.equals("8")||c.equals("9")) && followThisDriver(d)){

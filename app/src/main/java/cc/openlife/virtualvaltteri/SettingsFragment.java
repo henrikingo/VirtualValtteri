@@ -1,24 +1,27 @@
 package cc.openlife.virtualvaltteri;
 
-import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
+import android.widget.ListView;
+
+import androidx.annotation.NonNull;
+import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceScreen;
-import android.widget.Spinner;
 
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
-
-import cc.openlife.virtualvaltteri.speaker.Speaker;
-import cc.openlife.virtualvaltteri.speaker.VeryShort;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     private Preference.OnPreferenceChangeListener prefChanged;
-    private CharSequence[] sortedDrivers;
+    public CharSequence[] sortedDrivers;
+    public DynamicMultiSelectListPreference driversPreference;
+    public MultiSelectListPreference favoritedDriversPreference;
+    public Preference speakerPreference;
     public SettingsFragment(Preference.OnPreferenceChangeListener prefChanged, CharSequence[] sortedDrivers){
         this.prefChanged = prefChanged;
         this.sortedDrivers = sortedDrivers;
@@ -33,34 +36,52 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         addPreferencesFromResource(R.xml.settings);
 
         // Populate with drivers from the latest race
-        // TODO: Also show all selected and saved drivers, even when not driving
         System.out.println("Populate follow driver list (Settings)");
-        final DynamicMultiSelectListPreference driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
-        System.out.println("drivers list before setEntries(): " + driversPreference.getEntries());
-        System.out.println("selected drivers before setEntries(): " + driversPreference.getSummary());
-        // Clear the placeholder value, or for that matter whatever old list is there, maybe from previous race, maybe it's the same list...
+        driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
         driversPreference.setEntries(sortedDrivers);
         driversPreference.setEntryValues(sortedDrivers);
 
 
+        // favoritedDriversPreference are saved values from driversPreference that aren't driving
+        // in the current session. This preference is not persisted. It is essentially a helper or sidecar to the previous list.
+        favoritedDriversPreference = (MultiSelectListPreference) findPreference("favorited_drivers_key");
+        Set<String> favDriversCS = driversPreference.getReducedValues(false);
+        favoritedDriversPreference.setEntries(favDriversCS.stream().toArray(CharSequence[]::new));
+        favoritedDriversPreference.setEntryValues(favDriversCS.stream().toArray(CharSequence[]::new));
+        // In this list everything is always selected
+        Set<String> favDriversString = new HashSet<>();
+        for(CharSequence cs: favDriversCS)
+            favDriversString.add((String) cs);
+
+        favoritedDriversPreference.setValues(favDriversString);
+        favoritedDriversPreference.setSummaryProvider(new Preference.SummaryProvider() {
+            @Nullable
+            @Override
+            public CharSequence provideSummary(@NonNull Preference preference) {
+                String text = "";
+                StringBuilder builder = new StringBuilder();
+                Set<String> values = driversPreference.getReducedValues(false);
+                System.out.println("favoritedDrivers.getSummary() values: " + values);
+                boolean notEmpty = false;
+                for (CharSequence v: values) {
+                    if(values.contains(v)) {
+                        if(notEmpty){
+                            builder.append(", ");
+                        }
+                        builder.append(v);
+                        notEmpty=true;
+                    }
+                }
+                // Leftovers will be shown in their own MultiSelectList. SettingsFragment will take it from here
+                text = builder.toString();
+                return text;
+            }
+        });
+
         // Register listeners ...
+        favoritedDriversPreference.setOnPreferenceChangeListener(prefChanged);
         driversPreference.setOnPreferenceChangeListener(prefChanged);
-        final Preference prefList = findPreference("speaker_key");
-        prefList.setOnPreferenceChangeListener(prefChanged);
+        speakerPreference = findPreference("speaker_key");
+        speakerPreference.setOnPreferenceChangeListener(prefChanged);
     }
-
-/*    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        System.out.println("SettingsFragment.onCreate() " + savedInstanceState);
-
-        // below line is used to add preference
-        // fragment from our xml folder.
-        addPreferencesFromResource(R.xml.settings);
-
-        // Register listeners ...
-        final Preference prefList = findPreference("speaker_key");
-        prefList.setOnPreferenceChangeListener(prefChanged);
-    }
-*/
 }

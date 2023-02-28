@@ -104,9 +104,10 @@ public class MainActivity extends AppCompatActivity {
                 for(String s: sortedDrivers){
                     samesamebutdifferent.add((CharSequence) s);
                 }
-                System.out.println("Putting driverlist in the intent sending to settings: " + sortedDrivers);
+                //samesamebutdifferent.add("Kekekekek");
+                //samesamebutdifferent.add("Rosberg");
+                System.out.println("Putting driverlist in the intent sending to settings: " + samesamebutdifferent);
                 intent.putCharSequenceArrayListExtra("sortedDrivers", samesamebutdifferent);
-                ///startActivity(intent);
                 //  TODO: Fix deprecated
                 startActivityForResult(intent, 1);
             }
