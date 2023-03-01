@@ -81,7 +81,7 @@ public class SettingsActivity extends AppCompatActivity {
                     final MultiSelectListPreference favoritedDriversPreference = (MultiSelectListPreference) preference;
                     Set<String> newOldFollows = (HashSet<String>) value;
                     Set<String> oldOldFollows = favoritedDriversPreference.getValues();
-                    System.out.println("olldoldfollows"+ oldOldFollows);
+                    System.out.println("oldoldfollows"+ oldOldFollows);
                     System.out.println("newoldfollows"+newOldFollows);
                     // Subtract
                     // Note that for this widget you can only ever unselect widgets

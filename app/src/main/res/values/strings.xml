@@ -38,5 +38,5 @@
 
     <string name="carNrDefault">24</string>
     <string name="positionDefault">P0</string>
-    <string name="largeTextDefault">0:00.0</string>
+    <string name="largeTextDefault">00.0</string>
 </resources>
