@@ -14,19 +14,19 @@ public class VeryShort extends Speaker {
     }
 
     public String position(String position, DriverState d) {
-        return String.format("P %s\n", position);
+        return String.format("P %s ", position);
     }
     @Override
     public String lap(String time, DriverState d) {
-        return String.format("%s.\n", cutDecimal(time));
+        return String.format("%s. ", cutDecimal(time));
     }
     public String sector(String sectorNr, String time, DriverState d) {
-        return String.format("%s.\n", cutDecimal(time));
+        return String.format("%s. ", cutDecimal(time));
     }
     public String gap(String time, DriverState d) {
-        return String.format("%s gap %s.\n", driver(d), cutDecimal(time));
+        return String.format("%s gap %s. ", driver(d), cutDecimal(time));
     }
     public String rank(String time, DriverState d) {
-        return String.format("%s rank %s.\n", driver(d), cutDecimal(time));
+        return String.format("%s rank %s. ", driver(d), cutDecimal(time));
     }
 }

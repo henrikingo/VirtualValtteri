@@ -33,11 +33,11 @@ public class Speaker {
     }
     public String init(String argument) {
         if (argument.equals("p")) {
-            return "Session starting.\n";
+            return "Session starting. ";
         } else if (argument.equals("r")) {
-            return "Race starting!\n";
+            return "Race starting! ";
         } else {
-            return "New session.\n";
+            return "New session. ";
         }
     }
     public String title(String words) {
@@ -63,15 +63,15 @@ public class Speaker {
         }
     }
     public String position(String position, DriverState d) {
-        return String.format("%s in %s position.\n", driver(d), pos(position));
+        return String.format("%s in %s position. ", driver(d), pos(position));
     }
     public String lap(String time, DriverState d) {
-        return String.format("%s lap %s.\n", driver(d), cutDecimal(time));
+        return String.format("%s lap %s. ", driver(d), cutDecimal(time));
     }
     public String sector(String sectorNr, String time, DriverState d) {
-        return String.format("%s %s sector %s.\n", driver(d), pos(sectorNr), cutDecimal(time));
+        return String.format("%s %s sector %s. ", driver(d), pos(sectorNr), cutDecimal(time));
     }
     public String gap(String time, DriverState d) {
-        return String.format("%s gap %s.\n", driver(d), cutDecimal(time));
+        return String.format("%s gap %s. ", driver(d), cutDecimal(time));
     }
 }

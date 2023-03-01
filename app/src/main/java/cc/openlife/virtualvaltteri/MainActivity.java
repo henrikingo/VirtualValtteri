@@ -242,13 +242,15 @@ public class MainActivity extends AppCompatActivity {
                         }
                         Map<String,String> englishMessageMap = handler.message(message.toString());
                         String englishMessage = englishMessageMap.get("message");
+                        if(englishMessageMap.containsKey("driverChanged"))
+                            englishMessage += "\n";
                         if (!(englishMessage.equals(""))) {
                             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
+                            String finalEnglishMessage = englishMessage;
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-
-                                    mTextView.setText(englishMessage);
+                                    mTextView.setText(finalEnglishMessage);
                                     if(englishMessageMap.containsKey("s1"))
                                         mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s1")));
                                     if(englishMessageMap.containsKey("s2"))
@@ -290,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
         }
         catch(URISyntaxException ex) {
             System.err.println("Server URI is wrongly formatted: " + ex);
-            System.err.println("Can't really do much without the websocket. Giving up.");
+            System.err.println("Can't really do much without the websocket. Giving up. ");
         }
     }
 

@@ -11,20 +11,20 @@
         android:id="@+id/text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginLeft="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         android:background="@android:color/transparent"
         android:elevation="10dp"
-        android:text="Valtteri, it's James."
+        android:gravity="bottom"
         android:lines="3"
+        android:text="Valtteri, it's James."
         android:textColor="#aa777777"
-        app:layout_constraintTop_toBottomOf="@id/idGuidelineBottom"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/settingsButton"
-        app:layout_constraintStart_toEndOf="@+id/idBarrierLeft1"
-        app:layout_constraintLeft_toRightOf="@+id/idBarrierLeft1"/>
+        app:layout_constraintEnd_toStartOf="@id/idBarrierRight"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/idGuidelineLeft"
+        app:layout_constraintVertical_bias="1.0" />
 
     <Button
         android:id="@+id/settingsButton"
@@ -45,19 +45,21 @@
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="-50sp"
+        android:layout_marginBottom="8sp"
+        android:gravity="top"
+        android:lines="1"
         android:text="24"
         android:textColor="@color/brightLargeText"
-        app:autoSizeTextType="uniform"
-        app:autoSizeMinTextSize="72sp"
-        app:autoSizeMaxTextSize="512sp"
-        app:autoSizeStepGranularity="1sp"
-        android:lines="1"
         android:textStyle="bold"
+        app:autoSizeMaxTextSize="512sp"
+        app:autoSizeMinTextSize="72sp"
+        app:autoSizeStepGranularity="1sp"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintBottom_toTopOf="@id/idPosition"
         app:layout_constraintEnd_toStartOf="@id/idGuidelineLeft"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/idGuidelineTop"/>
+        app:layout_constraintVertical_bias="0.18" />
 
     <TextView
         android:id="@+id/idPosition"
@@ -65,14 +67,13 @@
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
-        android:layout_marginTop="-50sp"
+        android:layout_marginTop="-110sp"
+        android:gravity="bottom"
         app:autoSizeTextType="uniform"
         app:autoSizeMinTextSize="72sp"
         app:autoSizeMaxTextSize="512sp"
         app:autoSizeStepGranularity="1sp"
         android:lines="1"
-
-
 
         android:background="@android:color/transparent"
         android:text="P9"
@@ -88,37 +89,36 @@
         android:id="@+id/idLargeText"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="0dp"
+        android:layout_marginStart="-0dp"
         android:layout_marginTop="-50dp"
         android:layout_marginEnd="4dp"
         android:layout_marginBottom="-50dp"
-        app:autoSizeTextType="uniform"
-        app:autoSizeMinTextSize="192sp"
-        app:autoSizeMaxTextSize="2048sp"
-        app:autoSizeStepGranularity="1sp"
-        android:lines="1"
         android:background="@android:color/transparent"
         android:bufferType="normal"
         android:elevation="5dp"
+        android:lines="1"
         android:text="@string/largeTextDefault"
         android:textAlignment="textEnd"
+        android:gravity="center"
         android:textAppearance="@style/TextAppearance.AppCompat.Body1"
         android:textColor="@color/brightLargeText"
         android:textStyle="bold"
+        app:autoSizeMaxTextSize="2048sp"
+        app:autoSizeMinTextSize="192sp"
+        app:autoSizeStepGranularity="1sp"
+        app:autoSizeTextType="uniform"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/idBarrierLeft1"
+        app:layout_constraintStart_toEndOf="@id/idBarrierLeft"
         app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/idBarrierLeft1"
+        android:id="@+id/idBarrierLeft"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:foreground="#eeeeee"
-        app:layout_constraintLeft_toRightOf="@id/idCarNr"
         app:barrierDirection="end"
         app:constraint_referenced_ids="idCarNr,idPosition"
-        tools:layout_editor_absoluteX="288dp"
+        app:layout_constraintLeft_toRightOf="@id/idCarNr"
         tools:layout_editor_absoluteY="192dp" />
 
     <androidx.constraintlayout.widget.Guideline
@@ -135,11 +135,13 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.15" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/idGuidelineTop"
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/idBarrierRight"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.15" />
+        app:barrierDirection="left"
+        app:constraint_referenced_ids="settingsButton"
+        tools:layout_editor_absoluteX="1108dp"
+        tools:layout_editor_absoluteY="422dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

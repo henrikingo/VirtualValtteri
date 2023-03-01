@@ -25,6 +25,7 @@ public class MessageHandler {
     public HashMap<String, String> driverIdLookup;
     public Set<String> followDriverNames;
     private String sessionType = "Session";
+    private String latestDriver = "";
     public MessageHandler(Set<String> followDriverNames){
         driverLookup = new HashMap<String, DriverState>();
         driverIdLookup = new HashMap<String, String>();
@@ -32,6 +33,14 @@ public class MessageHandler {
     }
     public Speaker speaker = new VeryShort();
 
+    private DriverState getDriverState(String driverId, Map<String, String> englishMessageMap) {
+        DriverState d = driverLookup.get("r" + driverId);
+        if (!latestDriver.equals(d.id)) {
+            latestDriver = d.id;
+            englishMessageMap.put("driverChanged", "true");
+        }
+        return d;
+    }
     public Map<String, String> message(String message) {
         //System.out.println(message);
         Map<String,String> englishMessageMap = new HashMap<>();
@@ -60,7 +69,7 @@ public class MessageHandler {
                     case "title2":
                         // Session title
                         if (parts.length >= 3) {
-                            englishMessage.append(speaker.title(parts[2])).append("\n");
+                            englishMessage.append(speaker.title(parts[2])).append(" . ");
                             englishMessageMap.put(command, parts[2]);
                         }
                         break;
@@ -95,8 +104,7 @@ public class MessageHandler {
                     //System.out.println("match: "+justDriverMatcher.matches() + " " + driverAndCMatcher.matches());
                     if(justDriverMatcher.matches()){
                         String driverId = justDriverMatcher.group(1);
-                        DriverState d = driverLookup.get("r"+driverId);
-
+                        DriverState d = getDriverState(driverId, englishMessageMap);
                         if(argument.equals("#") && followThisDriver(d)){
                             d.rank = parts[2];
                             String newMessage = speaker.position(d.rank, d);
@@ -106,7 +114,7 @@ public class MessageHandler {
                     if(driverAndCMatcher.matches()){
                         String driverId = driverAndCMatcher.group(1);
                         String c = driverAndCMatcher.group(2);
-                        DriverState d = driverLookup.get("r"+driverId);
+                        DriverState d = getDriverState(driverId, englishMessageMap);
                         String driverEnglish = "";
 
                         if(!englishMessageMap.containsKey("carNr") && d!=null)
