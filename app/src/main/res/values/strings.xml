@@ -19,7 +19,7 @@
     <string name="speaker_title">Speaker</string>
     <string name="key_speaker">speaker_key</string>
 
-    <string name="drivers_title">Select driver(s) from current session</string>
+    <string name="drivers_title">Select driver to follow</string>
     <string name="drivers_key">drivers_key</string>
     <string-array name="drivers_initial_entries">
         <item>You can select driver(s) here once the session has started.</item>
@@ -28,7 +28,8 @@
         <item>default</item>
     </string-array>
 
-    <string name="favorited_drivers_title">Remember these drivers and follow them next time.</string>
+    <string name="favorited_drivers_dialog_title">Unselect drivers you no longer want to follow</string>
+    <string name="favorited_drivers_title">Remember these drivers</string>
     <string-array name="favorited_drivers_initial_entries">
         <item>You have not followed any drivers yet</item>
     </string-array>

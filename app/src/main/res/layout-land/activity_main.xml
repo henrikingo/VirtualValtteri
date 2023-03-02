@@ -45,7 +45,7 @@
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8sp"
+        android:layout_marginBottom="-110sp"
         android:gravity="top"
         android:lines="1"
         android:text="24"
@@ -55,7 +55,7 @@
         app:autoSizeMinTextSize="72sp"
         app:autoSizeStepGranularity="1sp"
         app:autoSizeTextType="uniform"
-        app:layout_constraintBottom_toTopOf="@id/idPosition"
+        app:layout_constraintBottom_toTopOf="@id/idGuidelineTop"
         app:layout_constraintEnd_toStartOf="@id/idGuidelineLeft"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -143,5 +143,12 @@
         app:constraint_referenced_ids="settingsButton"
         tools:layout_editor_absoluteX="1108dp"
         tools:layout_editor_absoluteY="422dp" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/idGuidelineTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.15" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -12,16 +12,17 @@
                     android:title="@string/drivers_title"
                     android:entries="@array/drivers_initial_entries"
                     android:entryValues="@array/drivers_initial_values"
-                    android:id="@+id/id_drivers_preference" />
+                    android:id="@+id/id_drivers_preference"
+                    android:persistent="true"/>
 
                 <MultiSelectListPreference
                     android:key="favorited_drivers_key"
-                    android:dialogTitle="Drivers you have followed previously, not in this session."
+                    android:dialogTitle="@string/favorited_drivers_dialog_title"
                     android:summary=""
-                    android:title="Drivers you have followed previously, not in this session."
+                    android:title="@string/favorited_drivers_title"
                     android:entries="@array/drivers_initial_entries"
                     android:entryValues="@array/drivers_initial_values"
-                    android:persistent="false"/>
+                    android:persistent="true"/>
 
         </PreferenceCategory>
         <!--below line is to create preference category-->
