@@ -52,8 +52,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import cc.openlife.virtualvaltteri.speaker.Speaker;
 import cc.openlife.virtualvaltteri.speaker.VeryShort;
@@ -98,8 +100,7 @@ public class MainActivity extends AppCompatActivity {
                 // opening a new intent to open settings activity.
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 // Send list of drivers in this race...
-                ArrayList<String> sortedDrivers = new ArrayList<>(handler.driverIdLookup.keySet());
-                Collections.sort(sortedDrivers);
+                SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
                 ArrayList<CharSequence> samesamebutdifferent = new ArrayList<>();
                 for(String s: sortedDrivers){
                     samesamebutdifferent.add((CharSequence) s);

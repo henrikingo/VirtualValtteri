@@ -6,19 +6,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.annotation.LayoutRes;
-import androidx.fragment.app.Fragment;
-import androidx.preference.MultiSelectListPreference;
-import androidx.preference.Preference;
-
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -36,10 +31,6 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
-        // below line is to change
-        // the title of our action bar.
-        //getSupportActionBar().setTitle("Settings");
 
         // Follow drivers
         Bundle extras = getIntent().getExtras();
@@ -60,8 +51,8 @@ public class SettingsActivity extends AppCompatActivity {
                 if(preference.getKey().equals("drivers_key")){
 
                     ArrayList<CharSequence> csList = new ArrayList<>(Collections.emptyList());
-                    HashSet<CharSequence> valueAsHash = (HashSet<CharSequence>)value;
-                    for(CharSequence cs: valueAsHash){
+                    SortedSet<CharSequence> sortedValue = (ConcurrentSkipListSet<CharSequence>)value;
+                    for(CharSequence cs: sortedValue){
                         System.out.println(cs);
                         csList.add(cs);
                     }
@@ -74,7 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
         };
 
         SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
-        SettingsFragment mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray, returnIntent, p);
+        SettingsFragment mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray, returnIntent);
         // below line is used to check if
         // frame layout is empty or not.
         if (findViewById(R.id.settingsLayout) != null) {
