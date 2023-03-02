@@ -49,7 +49,6 @@ public class SettingsActivity extends AppCompatActivity {
         }
         returnIntent = new Intent();
 
-
         Preference.OnPreferenceChangeListener prefChanged = new Preference.OnPreferenceChangeListener() {
             public boolean onPreferenceChange(Preference preference, Object value) {
                 System.out.println("prefChanged: " + preference.getKey() + " = " + value);
@@ -59,9 +58,7 @@ public class SettingsActivity extends AppCompatActivity {
                     return true;
                 }
                 if(preference.getKey().equals("drivers_key")){
-                    DynamicMultiSelectListPreference driversPreference = (DynamicMultiSelectListPreference) preference;
-                    Set<String> driversValuesCurrent = driversPreference.getReducedValues(true);
-                    System.out.println("pref change handler, getReducedValues: " + driversValuesCurrent);
+
                     ArrayList<CharSequence> csList = new ArrayList<>(Collections.emptyList());
                     HashSet<CharSequence> valueAsHash = (HashSet<CharSequence>)value;
                     for(CharSequence cs: valueAsHash){
@@ -72,46 +69,12 @@ public class SettingsActivity extends AppCompatActivity {
                     setResult(Activity.RESULT_OK,returnIntent);
                     return true;
                 }
-                // Logic: All the drivers ever followed remain in driversPreference. We just don't show them in the list or getSummary();
-                // Only once unselected from this list do we also remove the same from driversPreference.
-                // In mathematical terms, a driver is removed if they aren't driving in this session and aren't selected in favoritedDrivers;
-                if(preference.getKey().equals("favorited_drivers_key")){
-                    System.out.println("favorited_drivers_key");
-                    System.out.println(value);
-                    final MultiSelectListPreference favoritedDriversPreference = (MultiSelectListPreference) preference;
-                    Set<String> newOldFollows = (HashSet<String>) value;
-                    Set<String> oldOldFollows = favoritedDriversPreference.getValues();
-                    System.out.println("oldoldfollows"+ oldOldFollows);
-                    System.out.println("newoldfollows"+newOldFollows);
-                    // Subtract
-                    // Note that for this widget you can only ever unselect widgets
-                    assert newOldFollows.size() <= oldOldFollows.size();
-                    oldOldFollows.removeAll(newOldFollows);
-                    Set<String> diff =  oldOldFollows;
-                    System.out.println("diff"+ diff);
-
-                    SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
-                    Set<String> currentFollows = new HashSet<>();
-                    currentFollows = p.getStringSet("drivers_key", currentFollows);
-                    System.out.println("currentfollows"+ currentFollows);
-
-                    currentFollows.removeAll(diff);
-                    System.out.println("newCurrentFollows "+ currentFollows);
-                    p.edit().putStringSet("drivers_key", currentFollows);
-
-                    favoritedDriversPreference.setValues(newOldFollows);
-
-                    ArrayList<String> a = new ArrayList<>();
-                    a.addAll(currentFollows);
-                    returnIntent.putStringArrayListExtra("settings_drivers",a);
-                    setResult(Activity.RESULT_OK,returnIntent);
-                    return true;
-                }
-                return false;
+                return true;
             }
         };
 
-        SettingsFragment mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray);
+        SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
+        SettingsFragment mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray, returnIntent, p);
         // below line is used to check if
         // frame layout is empty or not.
         if (findViewById(R.id.settingsLayout) != null) {

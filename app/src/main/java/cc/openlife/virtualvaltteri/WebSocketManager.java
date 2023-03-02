@@ -63,6 +63,7 @@ public class WebSocketManager {
         }
         public void onError(Exception ex){
             System.err.println("websocket error: " + ex);
+            ex.printStackTrace();
             if(isRestarting){
                 System.err.println("Already scheduled to restart. Not doing anything in this thread.");
                 return;
