@@ -17,14 +17,13 @@
         android:background="@android:color/transparent"
         android:elevation="10dp"
         android:gravity="bottom"
-        android:lines="3"
+        android:lines="4"
         android:text="Valtteri, it's James."
         android:textColor="#aa777777"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/idBarrierRight"
+        app:layout_constraintEnd_toStartOf="@id/idGuidelineRight"
         app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/idGuidelineLeft"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintStart_toEndOf="@+id/idGuidelineLeft" />
 
     <Button
         android:id="@+id/settingsButton"
@@ -48,7 +47,7 @@
         android:layout_marginBottom="-110sp"
         android:gravity="top"
         android:lines="1"
-        android:text="24"
+        android:text="@string/carNrDefault"
         android:textColor="@color/brightLargeText"
         android:textStyle="bold"
         app:autoSizeMaxTextSize="512sp"
@@ -66,23 +65,23 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
-        android:layout_marginBottom="8dp"
         android:layout_marginTop="-110sp"
-        android:gravity="bottom"
-        app:autoSizeTextType="uniform"
-        app:autoSizeMinTextSize="72sp"
-        app:autoSizeMaxTextSize="512sp"
-        app:autoSizeStepGranularity="1sp"
-        android:lines="1"
-
+        android:layout_marginBottom="8dp"
         android:background="@android:color/transparent"
-        android:text="P9"
+        android:gravity="bottom"
+        android:lines="1"
+        android:text="@string/positionDefault"
         android:textAlignment="textStart"
         android:textColor="@color/brightLargeText"
+
         android:textStyle="bold"
+        app:autoSizeMaxTextSize="512sp"
+        app:autoSizeMinTextSize="72sp"
+        app:autoSizeStepGranularity="1sp"
+        app:autoSizeTextType="uniform"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@id/idGuidelineLeft"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/idGuidelineBottom" />
 
     <TextView
@@ -135,20 +134,18 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.15" />
 
-    <androidx.constraintlayout.widget.Barrier
-        android:id="@+id/idBarrierRight"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:barrierDirection="left"
-        app:constraint_referenced_ids="settingsButton"
-        tools:layout_editor_absoluteX="1108dp"
-        tools:layout_editor_absoluteY="422dp" />
-
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/idGuidelineTop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.15" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/idGuidelineRight"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.95" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

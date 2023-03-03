@@ -12,6 +12,7 @@ import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -51,7 +52,7 @@ public class SettingsActivity extends AppCompatActivity {
                 if(preference.getKey().equals("drivers_key")){
 
                     ArrayList<CharSequence> csList = new ArrayList<>(Collections.emptyList());
-                    SortedSet<CharSequence> sortedValue = (ConcurrentSkipListSet<CharSequence>)value;
+                    SortedSet<CharSequence> sortedValue = new ConcurrentSkipListSet<>((HashSet<CharSequence>)value);
                     for(CharSequence cs: sortedValue){
                         System.out.println(cs);
                         csList.add(cs);

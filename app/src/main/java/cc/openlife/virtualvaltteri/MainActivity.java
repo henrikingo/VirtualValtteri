@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
     private TextToSpeech tts;
     public Set<String> followDriverNames;
     Set<String> followDriverIds = new HashSet<String>(Collections.emptyList());
-    private final String initialMessage = "Valtteri. It's James.";
+    private final String initialMessage = "Valtteri. It's James.\n";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -262,6 +262,16 @@ public class MainActivity extends AppCompatActivity {
                                         mTextViewPosition.setText("P"+englishMessageMap.get("position"));
                                     if(englishMessageMap.containsKey("carNr"))
                                         mTextViewCarNr.setText(englishMessageMap.get("carNr"));
+                                    if(englishMessageMap.containsKey("time_meta")){
+                                        if(englishMessageMap.get("time_meta").equals("improved"))
+                                            setColorAll(getColor(R.color.timeImproved));
+                                        else if(englishMessageMap.get("time_meta").equals("individual best"))
+                                            setColorAll(getColor(R.color.timeIndividualBest));
+                                        else if(englishMessageMap.get("time_meta").equals("best"))
+                                            setColorAll(getColor(R.color.timeBest));
+                                        else
+                                            setColorAll(getColor(R.color.timeNormal));
+                                    }
                                 }
                             });
 
@@ -280,11 +290,15 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
-
         // Connect to WebSocket server
         if (websocketUrl != null) {
             connectWebsocket();
         }
+    }
+    private void setColorAll(int color){
+        mTextViewPosition.setTextColor(color);
+        mTextViewCarNr.setTextColor(color);
+        mTextViewLarge.setTextColor(color);
     }
     public void connectWebsocket(){
         try {
@@ -323,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
 
                     if(mTextView!=null)
-                        mTextView.setText(englishMessage);
+                        mTextView.setText(mTextView.getText() + " " + englishMessage);
                     if(englishMessageMap.containsKey("s1") && mTextViewLarge!=null)
                         mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s1")));
                     if(englishMessageMap.containsKey("s2") && mTextViewLarge!=null)
@@ -339,6 +353,16 @@ public class MainActivity extends AppCompatActivity {
                     // Of course if we have the position, great :-)
                     if(englishMessageMap.containsKey("position") && mTextViewPosition!=null)
                         mTextViewPosition.setText("P"+englishMessageMap.get("position"));
+                    if(englishMessageMap.containsKey("time_meta")){
+                        if(englishMessageMap.get("time_meta").equals("improved"))
+                            setColorAll(getColor(R.color.timeImproved));
+                        else if(englishMessageMap.get("time_meta").equals("individual best"))
+                            setColorAll(getColor(R.color.timeIndividualBest));
+                        else if(englishMessageMap.get("time_meta").equals("best"))
+                            setColorAll(getColor(R.color.timeBest));
+                        else
+                            setColorAll(getColor(R.color.timeNormal));
+                    }
                }
             });
         }

@@ -9,4 +9,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="brightLargeText">#ffee00</color>
     <color name="brightLargeTextSub">#dd9900</color>
+    <color name="timeNormal">@color/brightLargeText</color>
+    <color name="timeImproved">#FF00FF00</color>
+    <color name="timeIndividualBest">#FFFFFFFF</color>
+    <color name="timeBest">#FFDD55FF</color>
 </resources>

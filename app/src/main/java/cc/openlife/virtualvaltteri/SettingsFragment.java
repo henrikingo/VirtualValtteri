@@ -19,9 +19,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public DynamicMultiSelectListPreference driversPreference;
     public MultiSelectListPreference favoritedDriversPreference;
     Intent returnIntent;
+    Preference.OnPreferenceChangeListener prefChanged;
     public SettingsFragment(Preference.OnPreferenceChangeListener prefChanged, CharSequence[] sortedDrivers, Intent returnIntent){
         this.sortedDrivers = sortedDrivers;
         this.returnIntent = returnIntent;
+        this.prefChanged = prefChanged;
     }
 
     @SuppressLint("NewApi")
@@ -110,6 +112,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return text;
             }
         });
+        // Register listeners ...
+        driversPreference.setOnPreferenceChangeListener(prefChanged);
+        final Preference prefList = findPreference("speaker_key");
+        prefList.setOnPreferenceChangeListener(prefChanged);
     }
 
 }

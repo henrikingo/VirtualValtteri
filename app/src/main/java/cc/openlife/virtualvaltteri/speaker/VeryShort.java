@@ -17,6 +17,7 @@ public class VeryShort extends Speaker {
         return String.format("P %s ", position);
     }
     @Override
+    public String time_meta(String meta) {return "";}
     public String lap(String time, DriverState d) {
         return String.format("%s. ", cutDecimal(time));
     }

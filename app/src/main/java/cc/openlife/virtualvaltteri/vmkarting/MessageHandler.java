@@ -35,7 +35,7 @@ public class MessageHandler {
 
     private DriverState getDriverState(String driverId, Map<String, String> englishMessageMap) {
         DriverState d = driverLookup.get("r" + driverId);
-        if (!latestDriver.equals(d.id)) {
+        if (latestDriver != null && !latestDriver.equals(d.id)) {
             latestDriver = d.id;
             englishMessageMap.put("driverChanged", "true");
         }
@@ -115,7 +115,9 @@ public class MessageHandler {
                         String driverId = driverAndCMatcher.group(1);
                         String c = driverAndCMatcher.group(2);
                         DriverState d = getDriverState(driverId, englishMessageMap);
-                        String driverEnglish = "";
+
+                        if(argument.equals("ib") || argument.equals("in"))
+                            continue;
 
                         if(!englishMessageMap.containsKey("carNr") && d!=null)
                             englishMessageMap.put("carNr", d.carNr);
@@ -124,6 +126,9 @@ public class MessageHandler {
                             englishMessage.append(speaker.lap(parts[2], d));
                             englishMessageMap.put("lap", parts[2]);
                             englishMessageMap.put("carNr", d.carNr);
+                            // s2 and lap time come together. We need to unset whatever was there for s2.
+                            englishMessageMap.remove("time_meta");
+                            setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
                         if(c.equals("6") && followThisDriver(d)){
                             englishMessage.append(speaker.sector("1", parts[2], d));
@@ -131,16 +136,19 @@ public class MessageHandler {
                                 englishMessageMap.put("s1", parts[2]);
                                 englishMessageMap.put("carNr", d.carNr);
                             }
+                            setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
                         if(c.equals("7") && followThisDriver(d)){
                             englishMessage.append(speaker.sector("2", parts[2], d));
                             englishMessageMap.put("s2", parts[2]);
                             englishMessageMap.put("carNr", d.carNr);
+                            setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
                         if(c.equals("10") && parts.length>2 && followThisDriver(d)){
                             englishMessage.append(speaker.gap(parts[2], d));
                             englishMessageMap.put("gap", parts[2]);
                             englishMessageMap.put("carNr", d.carNr);
+                            setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
                         if(d.rank != null)
                                 if( !d.rank.equals(""))
@@ -154,7 +162,33 @@ public class MessageHandler {
         System.out.println(englishMessageMap);
         return englishMessageMap;
     }
+    private void setTimeMeta(String argument, DriverState d, Map<String, String> englishMessageMap, StringBuilder englishMessage){
+        if(followThisDriver(d)){
+            switch (argument){
+                case "tn":
+                    englishMessageMap.put("time_meta", "");
+                    break;
+                case "ti":
+                    englishMessageMap.put("time_meta", "improved");
+                    englishMessage.append(speaker.time_meta("improved"));
+                    break;
+                case "tb":
+                    englishMessageMap.put("time_meta", "best");
+                    englishMessage.append(speaker.time_meta("best"));
+                    break;
+/*
+                case "ib":
+                    // If we already have best time overall, don't need to also say it's personal best
+                    if(!englishMessageMap.containsKey("time_meta") || !englishMessageMap.get("time_meta").equals("best")){
+                        englishMessageMap.put("time_meta", "individual best");
+                        englishMessage.append(speaker.time_meta("individual best"));
+                    }
+                    break;
 
+ */
+            }
+        }
+    }
     private boolean followThisDriver(DriverState d){
         // If no filter specified, just read out everything
         if (d==null || followDriverNames.isEmpty())

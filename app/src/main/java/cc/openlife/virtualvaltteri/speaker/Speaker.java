@@ -44,6 +44,16 @@ public class Speaker {
         return words;
     }
 
+    public String time_meta(String meta) {
+        if(meta.equals("improved"))
+            return "Time improved.";
+        if(meta.equals("individual best"))
+            return "Personal best time for this session.";
+        if(meta.equals("best"))
+            return "Best time for this session.";
+        return "";
+    }
+
     public String finish(String sessionType) {
         return String.format("%s finished.\n", sessionType);
     }
