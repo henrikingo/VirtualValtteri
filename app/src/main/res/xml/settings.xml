@@ -33,17 +33,6 @@
         </PreferenceCategory>
         <!--below line is to create preference category-->
         <PreferenceCategory android:title="Radio">
-
-                <!--in below line we are creating a list preference
-                    and we are adding default selected value in list for 3 rd index-->
-                <!--dialog title is to set title for our dialog box
-                    entries is used to add list of data which we
-                    are adding from our strings file
-                    entry values is to add values to our entries.
-                    key is use to add key to our list preferences
-                    summary is use to add description to our option
-                    title is use to add title to our list preferences.-->
-                <!--this list preference is for remind me option-->
                 <ListPreference
                     android:defaultValue="@string/speaker_default"
                     android:dialogTitle="@string/speaker_label"

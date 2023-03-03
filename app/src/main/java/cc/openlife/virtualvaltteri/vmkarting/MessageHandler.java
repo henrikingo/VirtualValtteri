@@ -69,7 +69,7 @@ public class MessageHandler {
                     case "title2":
                         // Session title
                         if (parts.length >= 3) {
-                            englishMessage.append(speaker.title(parts[2])).append(" . ");
+                            englishMessage.append(speaker.title(parts[2])).append(" ");
                             englishMessageMap.put(command, parts[2]);
                         }
                         break;

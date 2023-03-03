@@ -59,7 +59,9 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import cc.openlife.virtualvaltteri.speaker.Speaker;
 import cc.openlife.virtualvaltteri.speaker.VeryShort;
+import cc.openlife.virtualvaltteri.speaker.Quiet;
 import cc.openlife.virtualvaltteri.vmkarting.MessageHandler;
+
 public class MainActivity extends AppCompatActivity {
     // Get WebSocket URL from properties file
     String websocketUrl = null;
@@ -118,12 +120,15 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
         followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
         String speaker = prefs.getString("speaker_key", null);
-        if(followDriverNames.isEmpty() && !prefs.contains("seen_hint")){
-            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.VISIBLE);
-        }
-        else {
-            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
-            prefs.edit().putString("seen_hint", "true");
+        TextView mHint = (TextView)findViewById(R.id.idTextHint);
+        if(mHint!=null){
+            if(followDriverNames.isEmpty() && !prefs.contains("seen_hint")){
+                mHint.setVisibility(View.VISIBLE);
+            }
+            else {
+                mHint.setVisibility(View.INVISIBLE);
+                prefs.edit().putString("seen_hint", "true");
+            }
         }
 
         handler = new MessageHandler(this.followDriverNames);
@@ -136,6 +141,10 @@ public class MainActivity extends AppCompatActivity {
                 case "VeryShort":
                     System.out.println("Switch to VeryShort speaker mode.");
                     handler.speaker = new VeryShort();
+                    break;
+                case "Quiet":
+                    System.out.println("Switch to Quiet speaker mode.");
+                    handler.speaker = new Quiet();
                     break;
             }
         }
@@ -210,6 +219,10 @@ public class MainActivity extends AppCompatActivity {
                         case "VeryShort":
                             System.out.println("Switch to VeryShort speaker mode.");
                             handler.speaker = new VeryShort();
+                            break;
+                        case "Quiet":
+                            System.out.println("Switch to Quiet speaker mode.");
+                            handler.speaker = new Quiet();
                             break;
                     }
                 }

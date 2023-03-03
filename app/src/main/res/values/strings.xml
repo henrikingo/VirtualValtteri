@@ -9,10 +9,12 @@
     <string-array name="speaker_choices">
         <item>Basic team radio</item>
         <item>Just numbers</item>
+        <item>Quiet</item>
     </string-array>
     <string-array name="speaker_class_names">
         <item>Speaker</item>
         <item>VeryShort</item>
+        <item>Quiet</item>
     </string-array>
     <string name="speaker_default">Speaker</string>
     <string name="speaker_summary">Different speakers say different things, using more or less words.</string>
