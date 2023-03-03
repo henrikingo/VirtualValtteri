@@ -3,9 +3,9 @@
     <style name="Theme.VirtualValtteri" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/black</item>
-        <item name="colorPrimaryVariant">@color/black</item>
+        <item name="colorPrimaryVariant">#FFDDDD99</item>
         <item name="colorOnPrimary">#666666</item>
-        <item name="background">@color/black</item>
+        <item name="background">@color/white</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">#ff9a00</item>
         <item name="colorSecondaryVariant">#ffc861</item>

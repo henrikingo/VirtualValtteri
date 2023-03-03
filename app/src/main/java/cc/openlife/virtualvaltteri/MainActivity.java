@@ -118,6 +118,13 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
         followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
         String speaker = prefs.getString("speaker_key", null);
+        if(followDriverNames.isEmpty() && !prefs.contains("seen_hint")){
+            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.VISIBLE);
+        }
+        else {
+            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
+            prefs.edit().putString("seen_hint", "true");
+        }
 
         handler = new MessageHandler(this.followDriverNames);
         if(speaker!=null) {
@@ -206,15 +213,23 @@ public class MainActivity extends AppCompatActivity {
                             break;
                     }
                 }
+                followDriverNames.clear();
                 ArrayList<CharSequence> driversCS = data.getCharSequenceArrayListExtra("settings_drivers");
                 if(driversCS!=null && driversCS.size()>0){
-                    followDriverNames.clear();
                     for(CharSequence cs: driversCS){
                         followDriverNames.add((String) cs);
                     }
                     System.out.println("onActivityResult() followDriverNames" + followDriverNames);
                 }
             }
+        }
+        SharedPreferences prefs = getSharedPreferences(getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        if(followDriverNames.isEmpty() && !prefs.contains("seen_hint")){
+            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.VISIBLE);
+        }
+        else {
+            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
+            prefs.edit().putString("seen_hint", "true").commit();
         }
     }
     public void ttsDone() {

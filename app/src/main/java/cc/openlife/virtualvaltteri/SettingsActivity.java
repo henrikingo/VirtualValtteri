@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.TextView;
 
 import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;
@@ -65,6 +66,7 @@ public class SettingsActivity extends AppCompatActivity {
                 return true;
             }
         };
+
 
         SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
         SettingsFragment mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray, returnIntent);

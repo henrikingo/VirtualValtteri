@@ -3,6 +3,7 @@ package cc.openlife.virtualvaltteri;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -121,6 +122,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return text;
             }
         });
+        
         // Register listeners ...
         driversPreference.setOnPreferenceChangeListener(prefChanged);
         final Preference prefList = findPreference("speaker_key");
