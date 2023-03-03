@@ -1,0 +1,50 @@
+Key for second column codes
+
+tn = Time neutral (yellow color)
+ti = Time improved (green color) = Best time for this driver in this session
+tb = Time best (purple color) = Best time for anyone in this session (implies P1)
+ib = individual best (white color) = at end of session, best times for each sector and total for this driver. For lap times sent also during session.
+in = individual neutral. Appears in columns c2,c11 and c10 which are <unknown>, Lap and lap time or gap, respectively
+
+The above are sent as text strings, with decimal dot, such as 45.123
+
+*i1 = sector 1, integer. Example: r17692|*i1|18150
+* = lap time and sector 2. Example: r17692|*|43527|25377
+
+Note that these are sent as integer milliseconds, no decimal, such as 45123
+
+# = position, integer
+in without any additional data = When car comes into the track at beginning of session. Example: r17692c2|in|
+
+
+
+These are used for c1, there's never any additional data. I think these might be the up/down arrows when position changes?
+gf
+gl
+gm
+gs  
+
+
+These are used for c2, no additional data.
+sf
+sr
+su
+sd
+ss
+
+
+
+These are even rarer and not attached to a specific driver
+
+countdown  = remaining time in session: dyn1|countdown|23778
+dr
+hide
+lf
+lg
+no1
+no2
+no3
+p
+pena1
+r
+text
