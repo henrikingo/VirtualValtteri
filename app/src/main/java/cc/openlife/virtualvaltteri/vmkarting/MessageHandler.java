@@ -150,9 +150,9 @@ public class MessageHandler {
                             englishMessageMap.put("carNr", d.carNr);
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
-                        if(d.rank != null)
-                                if( !d.rank.equals(""))
-                                    englishMessageMap.put("position", d.rank);
+                        if(d.rank != null && !d.rank.equals(""))
+                            if( !englishMessageMap.containsKey("carNr") || d.carNr.equals(englishMessageMap.get("carNr")))
+                                englishMessageMap.put("position", d.rank);
                     }
                 }
             }

@@ -29,13 +29,14 @@
     </string-array>
 
     <string name="favorited_drivers_dialog_title">Unselect drivers you no longer want to follow</string>
-    <string name="favorited_drivers_title">Remember these drivers</string>
+    <string name="favorited_drivers_title">Remember and follow these drivers</string>
     <string-array name="favorited_drivers_initial_entries">
         <item>You have not followed any drivers yet</item>
     </string-array>
     <string-array name="favorited_drivers_initial_values">
         <item>default</item>
     </string-array>
+    <string name="auto_favorite_title">Automatically remember drivers you followed</string>
 
     <string name="carNrDefault">00</string>
     <string name="positionDefault">P0</string>

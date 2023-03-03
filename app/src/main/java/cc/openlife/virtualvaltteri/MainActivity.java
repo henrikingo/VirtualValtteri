@@ -296,6 +296,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     private void setColorAll(int color){
+        if(mTextViewPosition==null)
+            return;
+
+
         mTextViewPosition.setTextColor(color);
         mTextViewCarNr.setTextColor(color);
         mTextViewLarge.setTextColor(color);

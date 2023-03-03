@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.SwitchPreference;
 
 import java.util.Set;
 import java.util.Vector;
@@ -35,8 +36,8 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         // fragment from our xml folder.
         addPreferencesFromResource(R.xml.settings);
 
+        boolean autoFavorite = ((SwitchPreference)findPreference("auto_favorite_key")).isChecked();
         // Populate with drivers from the latest race
-        System.out.println("Populate follow driver list (Settings)");
         driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
         driversPreference.setEntries(sortedDrivers);
         driversPreference.setEntryValues(sortedDrivers);
@@ -62,10 +63,18 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             newFavDrivers.add(s);
         }
         System.out.println("favDrivers: " + favDrivers);
-        favDrivers.addAll(driversNotInThisSession);
-        favoritedDriversPreference.setValues(newFavDrivers);
+        //favDrivers.addAll(driversNotInThisSession);
+        // Add all old follows to favorites, and make them checked/on
+        System.out.println(autoFavorite);
+        if(autoFavorite){
+            favoritedDriversPreference.setValues(newFavDrivers);
+        }
+        System.out.println(favoritedDriversPreference.getValues());
+        // Otherwise add them to the list but leave them unchecked. They will eventually disappear if not checked.
         favoritedDriversPreference.setEntries((CharSequence[]) newFavDrivers.toArray(new CharSequence[0]));
         favoritedDriversPreference.setEntryValues((CharSequence[]) newFavDrivers.toArray(new CharSequence[0]));
+        System.out.println(favoritedDriversPreference.getValues());
+
         System.out.println("newfavDrivers: " + " " + newFavDrivers);
 
         // In this list we remove items that are unselected

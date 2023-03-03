@@ -21,6 +21,7 @@ public class SettingsActivity extends AppCompatActivity {
     private ArrayList<CharSequence> sortedDriversFromIntent;
     private CharSequence[] sortedDriversArray;
     private Intent returnIntent;
+    private boolean autoAddFavorites;
     public SettingsActivity(){
         super();
     }

@@ -18,10 +18,16 @@
                 <MultiSelectListPreference
                     android:key="favorited_drivers_key"
                     android:dialogTitle="@string/favorited_drivers_dialog_title"
-                    android:summary=""
                     android:title="@string/favorited_drivers_title"
                     android:entries="@array/drivers_initial_entries"
                     android:entryValues="@array/drivers_initial_values"
+                    android:persistent="true"/>
+
+                <SwitchPreference
+                    android:key="auto_favorite_key"
+                    android:dialogTitle="@string/auto_favorite_title"
+                    android:title="@string/auto_favorite_title"
+                    android:defaultValue="true"
                     android:persistent="true"/>
 
         </PreferenceCategory>
