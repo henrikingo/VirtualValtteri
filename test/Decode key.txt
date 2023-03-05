@@ -36,7 +36,7 @@ ss
 
 These are even rarer and not attached to a specific driver
 
-countdown  = remaining time in session: dyn1|countdown|23778
+countdown  = remaining time in session: dyn1|countdown|23778    
 dr
 hide
 lf
