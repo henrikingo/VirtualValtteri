@@ -1,4 +1,4 @@
-package cc.openlife.virtualvaltteri;
+package com.virtualvaltteri;
 
 import android.content.Context;
 

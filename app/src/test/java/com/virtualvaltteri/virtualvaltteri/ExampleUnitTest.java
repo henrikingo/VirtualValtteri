@@ -1,4 +1,4 @@
-package cc.openlife.virtualvaltteri;
+package com.virtualvaltteri.virtualvaltteri;
 
 import org.junit.Test;
 

@@ -1,66 +1,54 @@
-package cc.openlife.virtualvaltteri;
+package com.virtualvaltteri;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.MultiAutoCompleteTextView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.PowerManager;
 import android.net.Uri;
 import android.provider.Settings;
 
+import com.virtualvaltteri.sensors.RaceEventSensor;
+import com.virtualvaltteri.sensors.SensorWrapper;
+import com.virtualvaltteri.speaker.Speaker;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import cc.openlife.virtualvaltteri.speaker.Speaker;
-import cc.openlife.virtualvaltteri.speaker.VeryShort;
-import cc.openlife.virtualvaltteri.speaker.Quiet;
-import cc.openlife.virtualvaltteri.vmkarting.MessageHandler;
+import cc.openlife.virtualvaltteri.R;
+
+import com.virtualvaltteri.sensors.Collect;
+import com.virtualvaltteri.speaker.VeryShort;
+import com.virtualvaltteri.speaker.Quiet;
+import com.virtualvaltteri.vmkarting.MessageHandler;
 
 public class MainActivity extends AppCompatActivity {
     // Get WebSocket URL from properties file
@@ -79,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
     Set<String> followDriverIds = new HashSet<String>(Collections.emptyList());
     private final String initialMessage = "Valtteri. It's James.\n";
 
+    private Collect collect;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,8 +119,12 @@ public class MainActivity extends AppCompatActivity {
                 prefs.edit().putString("seen_hint", "true");
             }
         }
+        if(collect==null){
+            System.out.println("Create Collect object to manage sensors");
+            collect = new Collect(this);
+        }
 
-        handler = new MessageHandler(this.followDriverNames);
+        handler = new MessageHandler(this.followDriverNames, collect);
         if(speaker!=null) {
             switch (speaker) {
                 case "Speaker":
@@ -182,6 +175,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        final int REQUEST_WRITE_PERMISSION = 786;
+        // Check if we have write permission
+        int permission = checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // prompt the user
+            requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
+        }
+
+
         float finalTtsPitch = ttsPitch;
         tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -194,6 +196,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+    public void startStopCollector(View v){
+        System.out.println("startStopCollector()");
+        if(collect.started)
+            collect.stopSensors();
+        else
+            collect.startSensors();
+
     }
 
     protected String cutDecimal(String d){
@@ -273,6 +283,7 @@ public class MainActivity extends AppCompatActivity {
                         String englishMessage = englishMessageMap.get("message");
                         if(englishMessageMap.containsKey("driverChanged"))
                             englishMessage += "\n";
+
                         if (!(englishMessage.equals(""))) {
                             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
                             String finalEnglishMessage = englishMessage;
@@ -347,6 +358,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
+        if(collect!=null)
+            collect.stopSensors();
+
         // Close WebSocket connection
         if (mWebSocket != null) {
             mWebSocket.close();
@@ -364,6 +378,7 @@ public class MainActivity extends AppCompatActivity {
         String messageType = englishMessageMap.get("type");
         if(! (englishMessage.equals(""))) {
             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
+
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

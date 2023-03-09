@@ -1,4 +1,4 @@
-package cc.openlife.virtualvaltteri.vmkarting;
+package com.virtualvaltteri.vmkarting;
 
 public class DriverState {
     /*

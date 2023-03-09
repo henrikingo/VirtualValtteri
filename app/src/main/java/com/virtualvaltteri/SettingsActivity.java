@@ -1,10 +1,9 @@
-package cc.openlife.virtualvaltteri;
+package com.virtualvaltteri;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.TextView;
 
 import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +15,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListSet;
+
+import cc.openlife.virtualvaltteri.R;
 
 public class SettingsActivity extends AppCompatActivity {
 

@@ -5,7 +5,7 @@
         <!--below line is to create preference category-->
         <PreferenceCategory android:title="Drivers">
 
-                <cc.openlife.virtualvaltteri.DynamicMultiSelectListPreference
+                <com.virtualvaltteri.DynamicMultiSelectListPreference
                     android:key="drivers_key"
                     android:dialogTitle="@string/drivers_title"
                     android:summary=""

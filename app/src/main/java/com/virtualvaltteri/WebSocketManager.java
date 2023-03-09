@@ -1,6 +1,4 @@
-package cc.openlife.virtualvaltteri;
-
-import android.speech.tts.TextToSpeech;
+package com.virtualvaltteri;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;

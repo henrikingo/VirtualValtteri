@@ -1,6 +1,6 @@
-package cc.openlife.virtualvaltteri.speaker;
+package com.virtualvaltteri.speaker;
 
-import cc.openlife.virtualvaltteri.vmkarting.DriverState;
+import com.virtualvaltteri.vmkarting.DriverState;
 
 public class VeryShort extends Speaker {
     @Override

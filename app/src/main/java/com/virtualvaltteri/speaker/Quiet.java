@@ -1,15 +1,6 @@
-package cc.openlife.virtualvaltteri.speaker;
+package com.virtualvaltteri.speaker;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import cc.openlife.virtualvaltteri.vmkarting.DriverState;
+import com.virtualvaltteri.vmkarting.DriverState;
 
 public class Quiet extends Speaker {
     public String init(String argument) {

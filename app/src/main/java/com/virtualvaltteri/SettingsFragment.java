@@ -1,9 +1,8 @@
-package cc.openlife.virtualvaltteri;
+package com.virtualvaltteri;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,6 +14,8 @@ import androidx.preference.SwitchPreference;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentSkipListSet;
+
+import cc.openlife.virtualvaltteri.R;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     public CharSequence[] sortedDrivers;
@@ -56,11 +57,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         // For whatever reason simple favDrivers.addAll(driversNotInThisSession) refused to work...
         Set<String> newFavDrivers = new ConcurrentSkipListSet<>();
         for(String s: favDrivers){
-            System.out.println(s);
+           // System.out.println(s);
             newFavDrivers.add(s);
         }
         for(String s: driversNotInThisSession){
-            System.out.println(s);
+            //System.out.println(s);
             newFavDrivers.add(s);
         }
         System.out.println("favDrivers: " + favDrivers);

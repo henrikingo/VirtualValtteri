@@ -1,19 +1,23 @@
-package cc.openlife.virtualvaltteri.vmkarting;
+package com.virtualvaltteri.vmkarting;
+
+import com.virtualvaltteri.sensors.RaceEvent;
+import com.virtualvaltteri.sensors.RaceEventSensor;
+import com.virtualvaltteri.sensors.SensorWrapper;
+import com.virtualvaltteri.speaker.Speaker;
+import com.virtualvaltteri.speaker.VeryShort;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import cc.openlife.virtualvaltteri.speaker.Speaker;
-import cc.openlife.virtualvaltteri.speaker.VeryShort;
+import com.virtualvaltteri.sensors.Collect;
 
 public class MessageHandler {
     /**
@@ -26,10 +30,14 @@ public class MessageHandler {
     public Set<String> followDriverNames;
     private String sessionType = "Session";
     private String latestDriver = "";
-    public MessageHandler(Set<String> followDriverNames){
+    private Collect collect;
+    private RaceEventSensor raceEventSensor;
+
+    public MessageHandler(Set<String> followDriverNames, Collect collect){
         driverLookup = new HashMap<String, DriverState>();
         driverIdLookup = new HashMap<String, String>();
         this.followDriverNames = followDriverNames;
+        this.collect=collect;
     }
     public Speaker speaker = new VeryShort();
 
@@ -38,6 +46,7 @@ public class MessageHandler {
         if (latestDriver != null && !latestDriver.equals(d.id)) {
             latestDriver = d.id;
             englishMessageMap.put("driverChanged", "true");
+            raceEventSensor.onEvent("driver", d.carNr, "r"+driverId, d.name);
         }
         return d;
     }
@@ -64,6 +73,15 @@ public class MessageHandler {
                             sessionType = "Session";
                         }
                         englishMessageMap.put("sessionType", sessionType);
+
+
+                        if(collect.started){
+                            collect.stopSensors();
+                        }
+                        collect.startSensors();
+                        this.raceEventSensor = (RaceEventSensor) collect.getSensor(SensorWrapper.TYPE_RACE_EVENT);
+                        raceEventSensor.onEvent("init", sessionType);
+
                         break;
                     case "title1":
                     case "title2":
@@ -87,7 +105,13 @@ public class MessageHandler {
                         if(parts.length >= 3 && parts[2].contains("<span data-flag=\"chequered\"></span>Finish")){
                             englishMessage.append(speaker.finish(sessionType));
                             englishMessageMap.put("finish", sessionType);
+                            DriverState dd = driverLookup.get(latestDriver);
+                            if(dd!=null)
+                                raceEventSensor.onEvent("finish", sessionType, dd.carNr, dd.bestLap);
+                            else
+                                raceEventSensor.onEvent("finish", sessionType);
                         }
+                        collect.stopSensors();
                         // Can't clear the lists this early. Sector times keep dropping in after the cheqcuered flag.
                         // And if we don't have the lists, you can no longer select a name, and then it just reads all the.
                         // times without knowing the driver they belong to.
@@ -109,6 +133,7 @@ public class MessageHandler {
                             d.rank = parts[2];
                             String newMessage = speaker.position(d.rank, d);
                             englishMessage.append(newMessage);
+                            raceEventSensor.onEvent("driver", "position", d.carNr, d.name, d.rank);
                         }
                     }
                     if(driverAndCMatcher.matches()){
@@ -129,12 +154,14 @@ public class MessageHandler {
                             // s2 and lap time come together. We need to unset whatever was there for s2.
                             englishMessageMap.remove("time_meta");
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
+                            raceEventSensor.onEvent("driver", "lap", d.carNr, d.name, parts[2]);
                         }
                         if(c.equals("6") && followThisDriver(d)){
                             englishMessage.append(speaker.sector("1", parts[2], d));
                             if(d.carNr.equals(englishMessageMap.get("carNr"))) {
                                 englishMessageMap.put("s1", parts[2]);
                                 englishMessageMap.put("carNr", d.carNr);
+                                raceEventSensor.onEvent("driver", "s1", d.carNr, d.name, parts[2]);
                             }
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
@@ -143,6 +170,7 @@ public class MessageHandler {
                             englishMessageMap.put("s2", parts[2]);
                             englishMessageMap.put("carNr", d.carNr);
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
+                            raceEventSensor.onEvent("driver", "s2", d.carNr, d.name, parts[2]);
                         }
                         if(c.equals("10") && parts.length>2 && followThisDriver(d)){
                             englishMessage.append(speaker.gap(parts[2], d));
@@ -239,4 +267,5 @@ public class MessageHandler {
             driverLookup.put(driver.id, driver);
         }
     }
+
 }

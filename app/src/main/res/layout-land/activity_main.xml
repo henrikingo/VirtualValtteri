@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context=".MainActivity">
+    tools:context="com.virtualvaltteri.MainActivity">
 
     <TextView
         android:id="@+id/text_view"
@@ -168,5 +168,15 @@
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/settingsButton" />
+
+    <Button
+        android:id="@+id/tempSensorButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="startStopCollector"
+        android:background="#FFFF0000"
+        android:text="Button"
+        tools:layout_editor_absoluteX="26dp"
+        tools:layout_editor_absoluteY="224dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
