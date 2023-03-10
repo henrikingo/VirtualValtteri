@@ -1,6 +1,7 @@
 package com.virtualvaltteri.sensors;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.os.Handler;
 import android.os.Looper;
@@ -80,6 +81,32 @@ public class Collect implements SensorEventListenerWrapper {
         // Make sure looper is setup before we unleash the sensor event listeners
         looper = new LooperThread();
         looper.start();
+
+        SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        String settingMode = prefs.getString("collect_sensor_data_key", "race");
+        System.out.println("Read setting Collect.mode: " + settingMode);
+        if(settingMode.equals("on")) startSensors();
+        if(settingMode.equals("off")) stopSensors();
+    }
+
+    public void raceStarted(){
+        SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        String settingMode = prefs.getString("collect_sensor_data_key", "race");
+        System.out.println("Read setting Collect.mode: " + settingMode);
+        if(settingMode.equals("race")){
+            if(started) {
+                stopSensors();
+            }
+            startSensors();
+        }
+    }
+    public void raceStopped(){
+        SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        String settingMode = prefs.getString("collect_sensor_data_key", "race");
+        System.out.println("Read setting Collect.mode: " + settingMode);
+        if(settingMode.equals("race")){
+            stopSensors();
+        }
     }
     public boolean startSensors() {
         if(started){
@@ -121,7 +148,7 @@ public class Collect implements SensorEventListenerWrapper {
         return true;
     }
     public boolean stopSensors() {
-        System.out.println("Stop all sensors");
+        System.out.println("Stop all sensors (whether they were on or not...)");
         sensorManager.flush(this);
         sensorManager.unregisterListener(this);
         started=false;
@@ -176,7 +203,7 @@ public class Collect implements SensorEventListenerWrapper {
             mHandler = new Handler(Looper.myLooper()) {
                 public void handleMessage(Message msg) {
                     //System.out.println("handleMessage" + msg.obj);
-                    System.out.print(((SensorEventWrapper)msg.obj).sensor.getStringType() + " ");
+                    // System.out.print(((SensorEventWrapper)msg.obj).sensor.getStringType() + " ");
 
                     addValtteriEvent((SensorEventWrapper) msg.obj);
                 }

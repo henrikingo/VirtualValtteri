@@ -44,4 +44,16 @@
 
         </PreferenceCategory>
 
+        <PreferenceCategory android:title="Data collection">
+                <ListPreference
+                    android:defaultValue="off"
+                    android:dialogTitle="Collect sensor data with phone"
+                    android:entries="@array/collect_sensor_data_choices"
+                    android:entryValues="@array/collect_sensor_data_values"
+                    android:key="collect_sensor_data_key"
+                    android:summary="%s"
+                    android:title="Collect sensor data with phone" />
+
+        </PreferenceCategory>
+
 </PreferenceScreen>

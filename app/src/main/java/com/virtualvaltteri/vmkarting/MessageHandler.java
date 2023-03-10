@@ -73,11 +73,7 @@ public class MessageHandler {
                         }
                         englishMessageMap.put("sessionType", sessionType);
 
-
-                        if(collect.started){
-                            collect.stopSensors();
-                        }
-                        collect.startSensors();
+                        collect.raceStarted();
                         this.raceEventSensor = (RaceEventSensor) collect.getSensor(SensorWrapper.TYPE_RACE_EVENT);
                         raceEventSensor.triggerEvent("init", sessionType);
 
@@ -111,7 +107,8 @@ public class MessageHandler {
                             else
                                 raceEventSensor.triggerEvent("finish", sessionType);
                         }
-                        collect.stopSensors();
+                        collect.raceStopped();
+
                         // Can't clear the lists this early. Sector times keep dropping in after the cheqcuered flag.
                         // And if we don't have the lists, you can no longer select a name, and then it just reads all the.
                         // times without knowing the driver they belong to.

@@ -197,14 +197,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    public void startStopCollector(View v){
-        System.out.println("startStopCollector()");
-        if(collect.started)
-            collect.stopSensors();
-        else
-            collect.startSensors();
-
-    }
 
     protected String cutDecimal(String d){
         int dot = d.indexOf(".");
@@ -253,6 +245,14 @@ public class MainActivity extends AppCompatActivity {
         else {
             ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
             prefs.edit().putString("seen_hint", "true").commit();
+        }
+        if(prefs.contains("collect_sensor_data_key")){
+            if(prefs.getString("collect_sensor_data_key", "off").equals("on")){
+                collect.startSensors();
+            }
+            if(prefs.getString("collect_sensor_data_key", "off").equals("off")){
+                collect.stopSensors();
+            }
         }
     }
     public void ttsDone() {

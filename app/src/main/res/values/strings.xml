@@ -44,4 +44,15 @@
     <string name="positionDefault">P0</string>
     <string name="largeTextDefault">00.0</string>
     <string name="initialHint">Select which driver to follow here 👇</string>
+
+    <string-array name="collect_sensor_data_choices">
+        <item>On</item>
+        <item>Off</item>
+        <item>Automatically during race</item>
+    </string-array>
+    <string-array name="collect_sensor_data_values">
+        <item>on</item>
+        <item>off</item>
+        <item>race</item>
+    </string-array>
 </resources>
