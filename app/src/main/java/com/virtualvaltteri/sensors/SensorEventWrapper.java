@@ -12,12 +12,15 @@ public class SensorEventWrapper
     public float [] values;
     public String [] stringValues;
     long timestamp = 0;
-    public SensorEventWrapper(SensorWrapper sensor){
-        assert sensor!=null;
-        // Easier for everyone to not leave Nulls hanging around
+    public SensorEventWrapper(){
         if(this.values==null) this.values = new float[9];
         if(this.stringValues==null) this.stringValues = new String[6];
         this.timestamp = SystemClock.elapsedRealtimeNanos();
+    }
+    public SensorEventWrapper(SensorWrapper sensor){
+        this();
+        assert sensor!=null;
+        // Easier for everyone to not leave Nulls hanging around
         this.sensor = new SensorWrapper();
         this.sensor.type = sensor.getStringType();
         this.sensor.TYPE = sensor.getType();

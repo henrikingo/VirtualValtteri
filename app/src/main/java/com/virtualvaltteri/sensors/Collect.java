@@ -36,12 +36,9 @@ public class Collect implements SensorEventListenerWrapper {
     private SensorWrapper[] allSensors;
     private SensorWrapper velocity;
     private SensorWrapper position;
-    private VelocityEvent previousVelocity;
-    private PositionEvent previousPosition;
-    //private SensorEventClone previousAccelerometer;
-    //private SensorEventClone previousMagnetometer;
     private CompositeRotationSensor compositeRotation;
-    public ConcurrentLinkedDeque<SensorEventWrapper> data;
+    //public ConcurrentLinkedDeque<SensorEventWrapper> data;
+    public List<SensorEventWrapper> data;
     CSVWriter writer = null;
     Context context;
     CharSequence startTime = null;
@@ -71,7 +68,8 @@ public class Collect implements SensorEventListenerWrapper {
         //humidity = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
         //pressure = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         light = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        compositeRotation = new CompositeRotationSensor(sensorManager, this);
+        //compositeRotation = new CompositeRotationSensor(sensorManager, this);
+        compositeRotation = (CompositeRotationSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_COMPOSITE_ROTATION);
 
         allSensors = new SensorWrapper[]{magnetic, gyro, magneticRotation, acceleration, velocity, position, rotation, light};
 
@@ -89,7 +87,8 @@ public class Collect implements SensorEventListenerWrapper {
             return false;
         }
 
-        data = new ConcurrentLinkedDeque<>(new ArrayList<SensorEventWrapper>(2*60*(samplingPeriod/1000/1000)));
+        //data = new ConcurrentLinkedDeque<>(new ArrayList<SensorEventWrapper>(2*60*(samplingPeriod/1000/1000)));
+        data = new ArrayList<SensorEventWrapper>(2*60*(samplingPeriod/1000/1000));
         startTime = DateFormat.format("yyyy-MM-dd-hh-mm-s", new Date());
         String fileName = "VirtualValtteri.vmkarting." + startTime + ".csv";
         try {
@@ -123,7 +122,10 @@ public class Collect implements SensorEventListenerWrapper {
     }
     public boolean stopSensors() {
         System.out.println("Stop all sensors");
+        sensorManager.flush(this);
         sensorManager.unregisterListener(this);
+        started=false;
+        sensorManager.flush(this);
 
         try {
             if (writer != null) {
@@ -174,6 +176,8 @@ public class Collect implements SensorEventListenerWrapper {
             mHandler = new Handler(Looper.myLooper()) {
                 public void handleMessage(Message msg) {
                     //System.out.println("handleMessage" + msg.obj);
+                    System.out.print(((SensorEventWrapper)msg.obj).sensor.getStringType() + " ");
+
                     addValtteriEvent((SensorEventWrapper) msg.obj);
                 }
             };
@@ -189,27 +193,15 @@ public class Collect implements SensorEventListenerWrapper {
             System.out.println("What kind of event has no values? " + event.sensor.getStringType());
             return;
         }
+        if(!started){
+            //System.out.println("Discarding incoming Sensor data because Collect.started is false.");
+            //System.out.println(event);
+            return;
+        }
 
 
         data.add(event);
         writeCSV(event);
-        /*
-        if(event.getTYPE()==Sensor.TYPE_ROTATION_VECTOR){
-            System.out.println("ein");
-            previousAccelerometer = (SensorEventClone) event;
-            EarthRotationEvent e = new EarthRotationEvent(previousAccelerometer, previousMagnetometer);
-            data.add(e);
-            writeCSV(e);
-        }
-        if(event.getTYPE()==Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR){
-            System.out.println("två");
-            previousMagnetometer = (SensorEventClone) event;
-            EarthRotationEvent e = new EarthRotationEvent(previousAccelerometer, previousMagnetometer);
-            data.add(e);
-            writeCSV(e);
-        }
-
-         */
     }
     private void writeCSV(SensorEventWrapper event){
         if (event.sensor == null) {

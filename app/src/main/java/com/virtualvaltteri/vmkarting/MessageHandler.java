@@ -1,6 +1,5 @@
 package com.virtualvaltteri.vmkarting;
 
-import com.virtualvaltteri.sensors.RaceEvent;
 import com.virtualvaltteri.sensors.RaceEventSensor;
 import com.virtualvaltteri.sensors.SensorWrapper;
 import com.virtualvaltteri.speaker.Speaker;
@@ -46,7 +45,7 @@ public class MessageHandler {
         if (latestDriver != null && !latestDriver.equals(d.id)) {
             latestDriver = d.id;
             englishMessageMap.put("driverChanged", "true");
-            raceEventSensor.onEvent("driver", d.carNr, "r"+driverId, d.name);
+            raceEventSensor.triggerEvent("driver", d.carNr, "r"+driverId, d.name);
         }
         return d;
     }
@@ -80,7 +79,8 @@ public class MessageHandler {
                         }
                         collect.startSensors();
                         this.raceEventSensor = (RaceEventSensor) collect.getSensor(SensorWrapper.TYPE_RACE_EVENT);
-                        raceEventSensor.onEvent("init", sessionType);
+                        raceEventSensor.triggerEvent("init", sessionType);
+
 
                         break;
                     case "title1":
@@ -107,9 +107,9 @@ public class MessageHandler {
                             englishMessageMap.put("finish", sessionType);
                             DriverState dd = driverLookup.get(latestDriver);
                             if(dd!=null)
-                                raceEventSensor.onEvent("finish", sessionType, dd.carNr, dd.bestLap);
+                                raceEventSensor.triggerEvent("finish", sessionType, dd.carNr, dd.bestLap);
                             else
-                                raceEventSensor.onEvent("finish", sessionType);
+                                raceEventSensor.triggerEvent("finish", sessionType);
                         }
                         collect.stopSensors();
                         // Can't clear the lists this early. Sector times keep dropping in after the cheqcuered flag.
@@ -133,7 +133,7 @@ public class MessageHandler {
                             d.rank = parts[2];
                             String newMessage = speaker.position(d.rank, d);
                             englishMessage.append(newMessage);
-                            raceEventSensor.onEvent("driver", "position", d.carNr, d.name, d.rank);
+                            raceEventSensor.triggerEvent("driver", "position", d.carNr, d.name, d.rank);
                         }
                     }
                     if(driverAndCMatcher.matches()){
@@ -154,14 +154,14 @@ public class MessageHandler {
                             // s2 and lap time come together. We need to unset whatever was there for s2.
                             englishMessageMap.remove("time_meta");
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
-                            raceEventSensor.onEvent("driver", "lap", d.carNr, d.name, parts[2]);
+                            raceEventSensor.triggerEvent("driver", "lap", d.carNr, d.name, parts[2]);
                         }
                         if(c.equals("6") && followThisDriver(d)){
                             englishMessage.append(speaker.sector("1", parts[2], d));
                             if(d.carNr.equals(englishMessageMap.get("carNr"))) {
                                 englishMessageMap.put("s1", parts[2]);
                                 englishMessageMap.put("carNr", d.carNr);
-                                raceEventSensor.onEvent("driver", "s1", d.carNr, d.name, parts[2]);
+                                raceEventSensor.triggerEvent("driver", "s1", d.carNr, d.name, parts[2]);
                             }
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
@@ -170,7 +170,7 @@ public class MessageHandler {
                             englishMessageMap.put("s2", parts[2]);
                             englishMessageMap.put("carNr", d.carNr);
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
-                            raceEventSensor.onEvent("driver", "s2", d.carNr, d.name, parts[2]);
+                            raceEventSensor.triggerEvent("driver", "s2", d.carNr, d.name, parts[2]);
                         }
                         if(c.equals("10") && parts.length>2 && followThisDriver(d)){
                             englishMessage.append(speaker.gap(parts[2], d));

@@ -17,6 +17,7 @@ public class SensorWrapper implements Serializable {
 
     public String vendor = "virtualvaltteri";
     public int version = 1;
+    public boolean isAndroidSensor = false;
 
     ArrayList<SensorEventListenerWrapper> listeners;
 
@@ -88,5 +89,14 @@ public class SensorWrapper implements Serializable {
 
     protected void triggerEvent(SensorEventWrapper newVelocity) {
         genericEventHandler(newVelocity);
+    }
+
+    /**
+     * Just returns true. Subclasses should override this to do anything.
+     * @param listener
+     * @return true
+     */
+    public boolean flush(SensorEventListenerWrapper listener){
+        return true;
     }
 }

@@ -6,17 +6,22 @@ import android.hardware.SensorEvent;
 import java.io.Serializable;
 
 public class AndroidSensorEventWrapper extends SensorEventWrapper implements Serializable {
-    public AndroidSensorEventWrapper(SensorEvent event){
-        super(new AndroidSensorWrapper(event.sensor));
-        if(event.values!=null) {
-            this.values = new float[event.values.length];
-            for (int i = 0; i < event.values.length; i++) {
-                this.values[i] = event.values[i];
+    public AndroidSensorEventWrapper(SensorEvent asEvent){
+        super();
+        if(asEvent.values!=null) {
+            this.values = new float[asEvent.values.length];
+            for (int i = 0; i < asEvent.values.length; i++) {
+                this.values[i] = asEvent.values[i];
                 this.stringValues = new String[1];
 
             }
         }
-        this.timestamp=event.timestamp;
+        this.timestamp=asEvent.timestamp;
+        // os.hardware.Sensor isn't serializable, so fake one for this purpose
+        this.sensor = new SensorWrapper();
+        this.sensor.type = asEvent.sensor.getStringType();
+        this.sensor.TYPE = asEvent.sensor.getType();
+        this.sensor.vendor = asEvent.sensor.getVendor();
+        this.sensor.version = asEvent.sensor.getVersion();
     }
-
 }

@@ -41,9 +41,9 @@ public class CompositeRotationSensor extends SensorWrapper implements SensorEven
     // accelerometer and magnetometer based rotation matrix
     private float[] rotationMatrix = new float[9];
 
-    public CompositeRotationSensor(SensorManagerWrapper sensorManager, Collect collect) {
+    public CompositeRotationSensor(SensorManagerWrapper sensorManager) {
         mSensorManager = sensorManager;
-        type = "FusionEvent";
+        type = "CompositeRotation";
         TYPE = SensorWrapper.TYPE_COMPOSITE_ROTATION;
         timestamp= SystemClock.elapsedRealtimeNanos();
 
@@ -74,7 +74,11 @@ public class CompositeRotationSensor extends SensorWrapper implements SensorEven
     public void unregisterListener(SensorEventListenerWrapper listener){
         super.unregisterListener(listener);
         if(listeners.isEmpty()){
-            mSensorManager.unregisterListener(this);
+            // Need to unregister from the sensors we listen on.
+            // But...
+            // We will get called ourselves when we do this, so prevent infinite loop...
+            if(listener!=this)
+                mSensorManager.unregisterListener(this);
         }
         if(fuseTimer!=null)
             fuseTimer.cancel();

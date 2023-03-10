@@ -3,6 +3,7 @@ package com.virtualvaltteri.sensors;
 import android.hardware.Sensor;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class VelocitySensor extends SensorWrapper implements Serializable, SensorEventListenerWrapper {
     private SensorWrapper accelerationSensor;
@@ -25,6 +26,7 @@ public class VelocitySensor extends SensorWrapper implements Serializable, Senso
     }
     public void unregisterListener(SensorEventListenerWrapper listener){
         super.unregisterListener(listener);
+        System.out.println("VelocitySensor listeners: " + String.join(",", Arrays.toString(listeners.toArray())));
         if(listeners.isEmpty()){
             accelerationSensor.unregisterListener(this);
         }

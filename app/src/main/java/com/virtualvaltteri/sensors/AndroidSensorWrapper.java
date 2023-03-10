@@ -4,9 +4,10 @@ import android.hardware.Sensor;
 import android.hardware.SensorEventListener;
 
 public class AndroidSensorWrapper extends SensorWrapper {
-    final boolean isAndroidSensor = true;
     private Sensor androidSensor;
-    public AndroidSensorWrapper(Sensor androidSensor){
+    public AndroidSensorWrapper(SensorManagerWrapper sensorManager, Sensor androidSensor){
+        isAndroidSensor=true;
+
         this.type = androidSensor.getStringType();
         this.TYPE = androidSensor.getType();
         this.androidSensor = androidSensor;
