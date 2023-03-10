@@ -156,7 +156,7 @@ public class Collect implements SensorEventListenerWrapper {
 
         try {
             if (writer != null) {
-                writer.flush();
+                writer.flushQuietly();
                 writer.close();
             }
 
