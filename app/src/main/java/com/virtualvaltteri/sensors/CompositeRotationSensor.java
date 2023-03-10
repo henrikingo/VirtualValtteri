@@ -10,7 +10,11 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.SystemClock;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -172,7 +176,7 @@ public class CompositeRotationSensor extends SensorWrapper implements SensorEven
     }
 
     private static final float NS2S = 1.0f / 1000000000.0f;
-    private float timestamp;
+    long timestamp;
     private boolean initState = true;
 
     public void gyroFunction(SensorEventWrapper event) {
@@ -304,12 +308,34 @@ public class CompositeRotationSensor extends SensorWrapper implements SensorEven
                             + oneMinusCoeff * accMagOrientation[2];
 
             // overwrite gyro matrix and orientation with fused orientation
-            // to comensate gyro drift
+            // to compensate gyro drift
             gyroMatrix = getRotationMatrixFromOrientation(fusedOrientation);
             System.arraycopy(fusedOrientation, 0, gyroOrientation, 0, 3);
 
             CompositeRotationEvent event = new CompositeRotationEvent(sensor, gyroOrientation);
             sensor.triggerEvent(event);
+            // Also publish the rotation matrix itself as events, as it presumably can be used to
+            // translate also other values into an earth-reference coordinate system?
+            // I'll try at least...
+            triggerRotationMatrixEvent(gyroMatrix, timestamp);
         }
     }
+
+    // By product, but rotation matrix can be useful to others as well
+    private Set<SensorEventListenerWrapper> rotationMatrixListeners = new HashSet<>();
+    protected void registerRotationMatrixListener(SensorEventListenerWrapper listener, int samplingPeriod) {
+        rotationMatrixListeners.add(listener);
+    }
+    protected void unregisterRotationMatrixListener(SensorEventListenerWrapper listener){
+        if(rotationMatrixListeners.contains(listener)) listeners.remove(listener);
+    }
+
+    private void triggerRotationMatrixEvent(float[] matrix, long timestamp){
+        for(SensorEventListenerWrapper listener: rotationMatrixListeners){
+            RotationMatrixEvent rmEvent = new RotationMatrixEvent(this, matrix, timestamp);
+            listener.onSensorChanged(rmEvent);
+        }
+    }
+
+
 }

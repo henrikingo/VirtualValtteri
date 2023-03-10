@@ -11,7 +11,8 @@ public class SensorWrapper implements Serializable {
     public static final int TYPE_VELOCITY = TYPE_CUSTOM_SENSOR_BASE + 2;
     public static final int TYPE_POSITION = TYPE_CUSTOM_SENSOR_BASE + 3;
     public static final int TYPE_COMPOSITE_ROTATION = TYPE_CUSTOM_SENSOR_BASE + 4;
-    public static final int TYPE_CUSTOM_SENSOR_MAX = TYPE_CUSTOM_SENSOR_BASE + 4;
+    public static final int TYPE_ROTATION_MATRIX = TYPE_CUSTOM_SENSOR_BASE + 5;
+    public static final int TYPE_CUSTOM_SENSOR_MAX = TYPE_CUSTOM_SENSOR_BASE + 5;
     public int TYPE = -1;
     public String type = "Generic SensorWrapper - Please override/overwrite this string and TYPE in your constructor";
 
