@@ -37,6 +37,8 @@ public class Collect implements SensorEventListenerWrapper {
     private SensorWrapper[] allSensors;
     private SensorWrapper velocity;
     private SensorWrapper position;
+    private SensorWrapper fsAcceleration;
+    private SensorWrapper fsAcceleration2;
     private CompositeRotationSensor compositeRotation;
     //public ConcurrentLinkedDeque<SensorEventWrapper> data;
     public List<SensorEventWrapper> data;
@@ -53,6 +55,7 @@ public class Collect implements SensorEventListenerWrapper {
         }
         return singletonInstance;
     }
+
     public Collect(Context context){
         this.context = context;
         //sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -71,8 +74,10 @@ public class Collect implements SensorEventListenerWrapper {
         light = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
         //compositeRotation = new CompositeRotationSensor(sensorManager, this);
         compositeRotation = (CompositeRotationSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_COMPOSITE_ROTATION);
+        fsAcceleration = (FSAccelerationSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_FS_ACCELERATION);
+        fsAcceleration2 = (FSAccelerationSensor2) sensorManager.getDefaultSensor(SensorWrapper.TYPE_FS_ACCELERATION2);
 
-        allSensors = new SensorWrapper[]{magnetic, gyro, magneticRotation, acceleration, velocity, position, rotation, light};
+        allSensors = new SensorWrapper[]{magnetic, gyro, magneticRotation, acceleration, velocity, position, rotation, light, compositeRotation, fsAcceleration};
 
         for(SensorWrapper s: sensorManager.getSensorList(Sensor.TYPE_ALL)){
             System.out.println(String.format("Listing all sensors: typeString=%s type=%s vendor=%s", s.getStringType(), s.getType(), s.getVendor()));
@@ -143,6 +148,8 @@ public class Collect implements SensorEventListenerWrapper {
         sensorManager.registerListener(this,velocity,samplingPeriod);
         sensorManager.registerListener(this, position, samplingPeriod);
         sensorManager.registerListener(this, compositeRotation, samplingPeriod);
+        sensorManager.registerListener(this, fsAcceleration, samplingPeriod);
+        sensorManager.registerListener(this, fsAcceleration2, samplingPeriod);
         started = true;
 
         return true;
@@ -156,12 +163,12 @@ public class Collect implements SensorEventListenerWrapper {
 
         try {
             if (writer != null) {
-                writer.flushQuietly();
+                writer.flush();
                 writer.close();
             }
-
         } catch (IOException e) {
-            e.printStackTrace();
+            if(!e.getMessage().equals("Stream closed"))
+                e.printStackTrace();
         }
         String fileName = "VirtualValtteri.vmkarting." + startTime + ".java.ArrayList.serialized";
         try {

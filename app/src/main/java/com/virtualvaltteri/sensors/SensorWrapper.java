@@ -12,7 +12,9 @@ public class SensorWrapper implements Serializable {
     public static final int TYPE_POSITION = TYPE_CUSTOM_SENSOR_BASE + 3;
     public static final int TYPE_COMPOSITE_ROTATION = TYPE_CUSTOM_SENSOR_BASE + 4;
     public static final int TYPE_ROTATION_MATRIX = TYPE_CUSTOM_SENSOR_BASE + 5;
-    public static final int TYPE_CUSTOM_SENSOR_MAX = TYPE_CUSTOM_SENSOR_BASE + 5;
+    public static final int TYPE_FS_ACCELERATION = TYPE_CUSTOM_SENSOR_BASE + 6;
+    public static final int TYPE_FS_ACCELERATION2 = TYPE_CUSTOM_SENSOR_BASE + 7;
+    public static final int TYPE_CUSTOM_SENSOR_MAX = TYPE_CUSTOM_SENSOR_BASE + 7;
     public int TYPE = -1;
     public String type = "Generic SensorWrapper - Please override/overwrite this string and TYPE in your constructor";
 
@@ -74,6 +76,16 @@ public class SensorWrapper implements Serializable {
     protected void unregisterListener(SensorEventListenerWrapper listener){
         if(listeners.contains(listener)) listeners.remove(listener);
     }
+
+    public SensorEventWrapper triggerEvent(float[] values, long timestamp){
+        float[] valuesCopy = new float[values.length];
+        System.arraycopy(values,0,valuesCopy,0,values.length);
+        SensorEventWrapper  event = new SensorEventWrapper(this, valuesCopy);
+        event.timestamp=timestamp;
+        genericEventHandler(event);
+        return event;
+    }
+
 
     public SensorEventWrapper triggerEvent(String s){
         SensorEventWrapper event = new SensorEventWrapper(this, s);

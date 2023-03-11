@@ -20,6 +20,7 @@ public class SensorManagerWrapper {
     public SensorWrapper[] allAndroidSensors = new SensorWrapper[SensorWrapper.TYPE_CUSTOM_SENSOR_BASE];
     public SensorManager androidSensorManager;
     public Map<SensorEventListenerWrapper,List<AndroidSensorListener>> androidSensorListeners;
+    public Context context;
 
     public static SensorManagerWrapper getSystemService(Context context){
         return getInstance(context);
@@ -32,6 +33,7 @@ public class SensorManagerWrapper {
     }
 
     private SensorManagerWrapper(Context context){
+        this.context = context;
         androidSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
 //        for(int type = SensorWrapper.TYPE_CUSTOM_SENSOR_BASE+1; type <= SensorWrapper.TYPE_CUSTOM_SENSOR_MAX; type++){
 //            allCustomSensors[idx(type)] = getCustomSensor(type);
@@ -92,6 +94,12 @@ public class SensorManagerWrapper {
                 break;
             case SensorWrapper.TYPE_COMPOSITE_ROTATION:
                 allCustomSensors[idx(type)] = new CompositeRotationSensor(this);
+                break;
+            case SensorWrapper.TYPE_FS_ACCELERATION:
+                allCustomSensors[idx(type)] = new FSAccelerationSensor(this);
+                break;
+            case SensorWrapper.TYPE_FS_ACCELERATION2:
+                allCustomSensors[idx(type)] = new FSAccelerationSensor2(this);
                 break;
         }
         // It's valid to ask for a number that doesn't exist, in which case we return null.

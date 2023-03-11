@@ -16,8 +16,6 @@ import java.util.HashSet;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import cc.openlife.virtualvaltteri.R;
-
 public class SettingsActivity extends AppCompatActivity {
 
     private ArrayList<CharSequence> sortedDriversFromIntent;

@@ -43,8 +43,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import cc.openlife.virtualvaltteri.R;
-
 import com.virtualvaltteri.sensors.Collect;
 import com.virtualvaltteri.speaker.VeryShort;
 import com.virtualvaltteri.speaker.Quiet;

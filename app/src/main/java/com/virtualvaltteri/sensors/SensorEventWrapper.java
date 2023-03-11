@@ -46,6 +46,12 @@ public class SensorEventWrapper
         this.timestamp=event.timestamp;
     }
 
+    public SensorEventWrapper(SensorWrapper sensor, float[] valuesCopy) {
+        this(sensor);
+        this.values=valuesCopy;
+
+    }
+
     public float[] getValues() {
         return values;
     }

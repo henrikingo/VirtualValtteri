@@ -15,8 +15,6 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import cc.openlife.virtualvaltteri.R;
-
 public class SettingsFragment extends PreferenceFragmentCompat {
     public CharSequence[] sortedDrivers;
     public DynamicMultiSelectListPreference driversPreference;

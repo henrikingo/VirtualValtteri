@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    namespace 'cc.openlife.virtualvaltteri'
+    namespace 'com.virtualvaltteri'
     compileSdk 33
 
     defaultConfig {
-        applicationId "cc.openlife.virtualvaltteri"
+        applicationId "com.virtualvaltteri"
         minSdk 29
         targetSdk 33
-        versionCode 2
-        versionName "0.2"
+        versionCode 3
+        versionName "0.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -37,7 +37,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     implementation 'androidx.preference:preference:1.2.0'
     implementation 'com.opencsv:opencsv:5.5.2'
-
+    implementation 'com.github.KalebKE:FSensor:v2.2'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
