@@ -1,5 +1,6 @@
 package com.virtualvaltteri.sensors;
 
+import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.os.SystemClock;
 
@@ -20,7 +21,15 @@ public class SensorEventWrapper
     public SensorEventWrapper(SensorWrapper sensor){
         this();
         assert sensor!=null;
-        // Easier for everyone to not leave Nulls hanging around
+        this.sensor = new SensorWrapper();
+        this.sensor.type = sensor.getStringType();
+        this.sensor.TYPE = sensor.getType();
+        this.sensor.vendor = sensor.getVendor();
+        this.sensor.version = sensor.getVersion();
+    }
+    public SensorEventWrapper(Sensor sensor){
+        this();
+        assert sensor!=null;
         this.sensor = new SensorWrapper();
         this.sensor.type = sensor.getStringType();
         this.sensor.TYPE = sensor.getType();
@@ -34,6 +43,18 @@ public class SensorEventWrapper
         stringValues[0] = s;
     }
     public SensorEventWrapper(SensorEventWrapper event){
+        this(event.sensor);
+        if(event.values!=null) {
+            this.values = new float[event.values.length];
+            for (int i = 0; i < event.values.length; i++) {
+                this.values[i] = event.values[i];
+                this.stringValues = new String[1];
+
+            }
+        }
+        this.timestamp=event.timestamp;
+    }
+    public SensorEventWrapper(SensorEvent event){
         this(event.sensor);
         if(event.values!=null) {
             this.values = new float[event.values.length];

@@ -3,24 +3,44 @@ package com.virtualvaltteri.sensors;
 import android.hardware.SensorManager;
 import android.os.SystemClock;
 
-public class RotationMatrixSensor extends SensorWrapper implements SensorEventListenerWrapper{
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+public class RotationMatrixSensor extends CompositeRotationSensor implements SensorEventListenerWrapper{
+    private Set<SensorManagerWrapper> myListeners = new HashSet<>();
     SensorManagerWrapper sensorManager;
-    CompositeRotationSensor compositeRotationSensor;
     public RotationMatrixSensor(SensorManagerWrapper sensorManager) {
-        super();
-        this.sensorManager = sensorManager;
+        super(sensorManager);
         TYPE = SensorWrapper.TYPE_ROTATION_MATRIX;
         type = "RotationMatrix";
     }
     public void registerListener(SensorEventListenerWrapper listener, int samplingPeriod) {
-        super.registerListener(listener,samplingPeriod);
-        compositeRotationSensor = (CompositeRotationSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_COMPOSITE_ROTATION);
-        compositeRotationSensor.registerRotationMatrixListener(this, SensorManager.SENSOR_DELAY_FASTEST);
+        super.registerListener(this,samplingPeriod);
+        registerRotationMatrixListener(this, SensorManager.SENSOR_DELAY_FASTEST);
     }
     public void unregisterListener(SensorEventListenerWrapper listener){
-        if(listeners.contains(listener)) listeners.remove(listener);
-        compositeRotationSensor = (CompositeRotationSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_COMPOSITE_ROTATION);
-        compositeRotationSensor.unregisterRotationMatrixListener(this);
+        if(myListeners.contains(listener)){
+            myListeners.remove(listener);
+            super.unregisterListener(this);
+            unregisterRotationMatrixListener(this);
+        }
+    }
+
+
+    private Set<SensorEventListenerWrapper> rotationMatrixListeners = new HashSet<>();
+    protected void registerRotationMatrixListener(SensorEventListenerWrapper listener, int samplingPeriod) {
+        rotationMatrixListeners.add(listener);
+    }
+    protected void unregisterRotationMatrixListener(SensorEventListenerWrapper listener){
+        if(rotationMatrixListeners.contains(listener)) listeners.remove(listener);
+    }
+
+    private void triggerRotationMatrixEvent(float[] matrix, long timestamp){
+        for(SensorEventListenerWrapper listener: rotationMatrixListeners){
+            RotationMatrixEvent rmEvent = new RotationMatrixEvent(this, matrix, timestamp);
+            listener.onSensorChanged(rmEvent);
+        }
     }
 
     @Override
@@ -31,7 +51,7 @@ public class RotationMatrixSensor extends SensorWrapper implements SensorEventLi
     @Override
     public void onSensorChanged(SensorEventWrapper rotationMatrix) {
         // Just passing through to my listeners
-        triggerEvent(rotationMatrix);
+        triggerRotationMatrixEvent(getRotationMatrix(), rotationMatrix.timestamp);
     }
 }
 

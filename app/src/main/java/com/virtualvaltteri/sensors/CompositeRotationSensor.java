@@ -314,27 +314,11 @@ public class CompositeRotationSensor extends SensorWrapper implements SensorEven
 
             CompositeRotationEvent event = new CompositeRotationEvent(sensor, gyroOrientation);
             sensor.triggerEvent(event);
-            // Also publish the rotation matrix itself as events, as it presumably can be used to
-            // translate also other values into an earth-reference coordinate system?
-            // I'll try at least...
-            triggerRotationMatrixEvent(gyroMatrix, timestamp);
         }
     }
 
-    // By product, but rotation matrix can be useful to others as well
-    private Set<SensorEventListenerWrapper> rotationMatrixListeners = new HashSet<>();
-    protected void registerRotationMatrixListener(SensorEventListenerWrapper listener, int samplingPeriod) {
-        rotationMatrixListeners.add(listener);
-    }
-    protected void unregisterRotationMatrixListener(SensorEventListenerWrapper listener){
-        if(rotationMatrixListeners.contains(listener)) listeners.remove(listener);
-    }
-
-    private void triggerRotationMatrixEvent(float[] matrix, long timestamp){
-        for(SensorEventListenerWrapper listener: rotationMatrixListeners){
-            RotationMatrixEvent rmEvent = new RotationMatrixEvent(this, matrix, timestamp);
-            listener.onSensorChanged(rmEvent);
-        }
+    public float[] getRotationMatrix(){
+        return rotationMatrix;
     }
 
 

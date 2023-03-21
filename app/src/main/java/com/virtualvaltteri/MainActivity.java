@@ -13,7 +13,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -181,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
         }
 
-
         float finalTtsPitch = ttsPitch;
         tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
             @Override
@@ -196,6 +198,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public boolean TODO(boolean returnValue){
+        return returnValue;
+    }
+    public boolean TODO(){
+        return TODO(true);
+    }
     protected String cutDecimal(String d){
         int dot = d.indexOf(".");
         if (dot >= 1){

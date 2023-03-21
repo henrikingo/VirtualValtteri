@@ -101,6 +101,12 @@ public class SensorManagerWrapper {
             case SensorWrapper.TYPE_FS_ACCELERATION2:
                 allCustomSensors[idx(type)] = new FSAccelerationSensor2(this);
                 break;
+            case SensorWrapper.TYPE_GPS_POSITION:
+                allCustomSensors[idx(type)] = new GPSPositionSensor(this);
+                break;
+            case SensorWrapper.TYPE_EARTH_ACCELERATION:
+                allCustomSensors[idx(type)] = new EarthAccelerationSensor(this);
+                break;
         }
         // It's valid to ask for a number that doesn't exist, in which case we return null.
         return allCustomSensors[idx(type)];

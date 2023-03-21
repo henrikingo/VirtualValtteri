@@ -106,8 +106,8 @@ public class MessageHandler {
                                 raceEventSensor.triggerEvent("finish", sessionType, dd.carNr, dd.bestLap);
                             else
                                 raceEventSensor.triggerEvent("finish", sessionType);
+                            collect.raceStopped();
                         }
-                        collect.raceStopped();
 
                         // Can't clear the lists this early. Sector times keep dropping in after the cheqcuered flag.
                         // And if we don't have the lists, you can no longer select a name, and then it just reads all the.

@@ -8,7 +8,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class WebSocketManager {
-    private WebSocketClient mWebSocketClient;
+    private static MyWebSocketClient mWebSocketClient;
     private URI serverUri;
     private MainActivity activity;
     private boolean isRestarting = false;
@@ -27,6 +27,7 @@ public class WebSocketManager {
     public class MyWebSocketClient extends  WebSocketClient {
         MainActivity activity;
         URI serverUri;
+        public boolean isClosedForever = false;
         MyWebSocketClient(URI serverUri, MainActivity activity) {
             super(serverUri);
             this.activity = activity;
@@ -38,6 +39,8 @@ public class WebSocketManager {
             System.out.println("Websocket connected");
         }
         public void onMessage(final String message) {
+            if(isClosedForever) return;
+
             // Called when a message is received from the server
             activity.processMesssage(message);
         }
@@ -52,6 +55,8 @@ public class WebSocketManager {
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
+                    mWebSocketClient.isClosedForever = true;
+
                     mWebSocketClient = new MyWebSocketClient(serverUri, activity);
                     mWebSocketClient.connect();
                     isRestarting = false;
@@ -67,11 +72,15 @@ public class WebSocketManager {
                 return;
             }
 
+            isRestarting = true;
             System.err.println("Scheduling a re-connect in a minute...");
             Timer t = new Timer();
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
+                    mWebSocketClient.isClosedForever = true;
+                    mWebSocketClient.close();
+
                     mWebSocketClient = new MyWebSocketClient(serverUri, activity);
                     mWebSocketClient.connect();
                     isRestarting = false;

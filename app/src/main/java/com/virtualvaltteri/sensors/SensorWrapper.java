@@ -14,7 +14,9 @@ public class SensorWrapper implements Serializable {
     public static final int TYPE_ROTATION_MATRIX = TYPE_CUSTOM_SENSOR_BASE + 5;
     public static final int TYPE_FS_ACCELERATION = TYPE_CUSTOM_SENSOR_BASE + 6;
     public static final int TYPE_FS_ACCELERATION2 = TYPE_CUSTOM_SENSOR_BASE + 7;
-    public static final int TYPE_CUSTOM_SENSOR_MAX = TYPE_CUSTOM_SENSOR_BASE + 7;
+    public static final int TYPE_GPS_POSITION = TYPE_CUSTOM_SENSOR_BASE + 8;
+    public static final int TYPE_EARTH_ACCELERATION = TYPE_CUSTOM_SENSOR_BASE + 9;
+    public static final int TYPE_CUSTOM_SENSOR_MAX = TYPE_CUSTOM_SENSOR_BASE + 9;
     public int TYPE = -1;
     public String type = "Generic SensorWrapper - Please override/overwrite this string and TYPE in your constructor";
 
@@ -23,6 +25,7 @@ public class SensorWrapper implements Serializable {
     public boolean isAndroidSensor = false;
 
     ArrayList<SensorEventListenerWrapper> listeners;
+    public int samplingPeriod;
 
     public SensorWrapper(){
         listeners = new ArrayList<>(2);
@@ -72,6 +75,7 @@ public class SensorWrapper implements Serializable {
 
     protected void registerListener(SensorEventListenerWrapper listener, int samplingPeriod) {
         listeners.add(listener);
+        this.samplingPeriod = samplingPeriod;
     }
     protected void unregisterListener(SensorEventListenerWrapper listener){
         if(listeners.contains(listener)) listeners.remove(listener);
