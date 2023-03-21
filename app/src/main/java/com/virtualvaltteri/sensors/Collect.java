@@ -25,27 +25,8 @@ public class Collect implements SensorEventListenerWrapper {
 //    final public int samplingPeriod = 100000;
     final public int samplingPeriod = SensorManager.SENSOR_DELAY_FASTEST;
     private SensorManagerWrapper sensorManager;
-    private SensorWrapper acceleration;
     private SensorWrapper earthAccel;
-    private SensorWrapper gravity;
-    private SensorWrapper magnetic;
-    private SensorWrapper magneticRotation;
-    private SensorWrapper gyro;
-
     private SensorWrapper rotation;
-    private SensorWrapper compassNorth;
-    private SensorWrapper temperature;
-    private SensorWrapper humidity;
-    private SensorWrapper pressure;
-    private SensorWrapper light;
-    private SensorWrapper[] allSensors;
-    private SensorWrapper velocity;
-    private SensorWrapper position;
-    private SensorWrapper fsAcceleration;
-    private SensorWrapper fsAcceleration2;
-    private CompositeRotationSensor compositeRotation;
-    private GPSPositionSensor gpsPosition;
-
     private SensorWrapper race;
 
 
@@ -67,31 +48,11 @@ public class Collect implements SensorEventListenerWrapper {
 
     public Collect(Context context){
         this.context = context;
-        //sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         sensorManager = SensorManagerWrapper.getInstance(context);
-        //magnetic = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        //gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        //magneticRotation = sensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
-        //acceleration = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
         earthAccel = sensorManager.getDefaultSensor(SensorWrapper.TYPE_EARTH_ACCELERATION);
-        //gravity = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
-
-        //velocity = (VelocitySensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_VELOCITY);
-        //position = (PositionSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_POSITION);
         rotation = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        //compassNorth = sensorManager.getDefaultSensor(Sensor.TYPE_HEADING);
-        //temperature = sensorManager.getDefaultSensor(Sensor.TYPE_AMBIENT_TEMPERATURE);
-        //humidity = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
-        //pressure = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
-        //light = sensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
-        //compositeRotation = new CompositeRotationSensor(sensorManager, this);
-        //compositeRotation = (CompositeRotationSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_COMPOSITE_ROTATION);
-//        fsAcceleration = (FSAccelerationSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_FS_ACCELERATION);
-//        fsAcceleration2 = (FSAccelerationSensor2) sensorManager.getDefaultSensor(SensorWrapper.TYPE_FS_ACCELERATION2);
-        //gpsPosition = (GPSPositionSensor) sensorManager.getDefaultSensor(SensorWrapper.TYPE_GPS_POSITION);
         race = sensorManager.getDefaultSensor(SensorWrapper.TYPE_RACE_EVENT);
-
-        allSensors = new SensorWrapper[]{magnetic, gyro, magneticRotation, acceleration, velocity, position, rotation, light, compositeRotation, fsAcceleration, gpsPosition};
+;
 
         for(SensorWrapper s: sensorManager.getSensorList(Sensor.TYPE_ALL)){
             System.out.println(String.format("Listing all sensors: typeString=%s type=%s vendor=%s", s.getStringType(), s.getType(), s.getVendor()));
@@ -149,24 +110,9 @@ public class Collect implements SensorEventListenerWrapper {
             return false;
         }
 
-        //sensorManager.registerListener(this, acceleration, samplingPeriod);
         sensorManager.registerListener(this, earthAccel, samplingPeriod);
         sensorManager.registerListener(this, rotation, samplingPeriod);
-        //sensorManager.registerListener(this, magnetic, samplingPeriod);
-        //sensorManager.registerListener(this, gyro, samplingPeriod);
-        //sensorManager.registerListener(this, magneticRotation, samplingPeriod);  // Ei toimi tabletissa
-        //sensorManager.registerListener(this, compassNorth, 10*1000*1000);
-        //sensorManager.registerListener(this, temperature, 1000*1000);
-        //sensorManager.registerListener(this, humidity, 1000*1000);
-        //sensorManager.registerListener(this, pressure, 1000*1000);
-//        sensorManager.registerListener(this, light, 1000*1000);
-//        sensorManager.registerListener(this,velocity,samplingPeriod);
-//        sensorManager.registerListener(this, position, samplingPeriod);
-//        sensorManager.registerListener(this, compositeRotation, samplingPeriod);
-//        sensorManager.registerListener(this, fsAcceleration, samplingPeriod);
-//        sensorManager.registerListener(this, fsAcceleration2, samplingPeriod);
         sensorManager.registerListener(this, race, samplingPeriod);
-        //sensorManager.registerListener(this,gpsPosition, 60*1000*1000);
         started = true;
 
         return true;
@@ -273,9 +219,6 @@ public class Collect implements SensorEventListenerWrapper {
             System.out.println("What kind of event has no sensor? " + event.values);
             return;
         }
-//        System.out.println(event.sensor.type);
-//        System.out.println(event.sensor.TYPE);
-
         int arrayLength = event.values.length + event.stringValues.length + 5;
         String[] csvStrings = new String[arrayLength];
         csvStrings[0] = ""+event.timestamp;

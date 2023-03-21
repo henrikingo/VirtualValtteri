@@ -86,24 +86,6 @@ public class SensorManagerWrapper {
             case SensorWrapper.TYPE_RACE_EVENT:
                 allCustomSensors[idx(type)] = new RaceEventSensor();
                 break;
-            case SensorWrapper.TYPE_VELOCITY:
-                allCustomSensors[idx(type)] = new VelocitySensor(this);
-                break;
-            case SensorWrapper.TYPE_POSITION:
-                allCustomSensors[idx(type)] = new PositionSensor(this);
-                break;
-            case SensorWrapper.TYPE_COMPOSITE_ROTATION:
-                allCustomSensors[idx(type)] = new CompositeRotationSensor(this);
-                break;
-            case SensorWrapper.TYPE_FS_ACCELERATION:
-                allCustomSensors[idx(type)] = new FSAccelerationSensor(this);
-                break;
-            case SensorWrapper.TYPE_FS_ACCELERATION2:
-                allCustomSensors[idx(type)] = new FSAccelerationSensor2(this);
-                break;
-            case SensorWrapper.TYPE_GPS_POSITION:
-                allCustomSensors[idx(type)] = new GPSPositionSensor(this);
-                break;
             case SensorWrapper.TYPE_EARTH_ACCELERATION:
                 allCustomSensors[idx(type)] = new EarthAccelerationSensor(this);
                 break;
