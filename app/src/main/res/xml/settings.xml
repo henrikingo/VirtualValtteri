@@ -4,30 +4,50 @@
 
         <!--below line is to create preference category-->
         <PreferenceCategory android:title="Drivers">
-
-                <com.virtualvaltteri.DynamicMultiSelectListPreference
+                <com.virtualvaltteri.settings.DynamicMultiSelectListPreference
                     android:key="drivers_key"
+                    android:dependency="writein_driver_name_key"
                     android:dialogTitle="@string/drivers_title"
                     android:summary=""
                     android:title="@string/drivers_title"
+                    android:singleLineTitle="false"
                     android:entries="@array/drivers_initial_entries"
                     android:entryValues="@array/drivers_initial_values"
                     android:id="@+id/id_drivers_preference"
                     android:persistent="true"/>
 
-                <MultiSelectListPreference
-                    android:key="favorited_drivers_key"
-                    android:dialogTitle="@string/favorited_drivers_dialog_title"
-                    android:title="@string/favorited_drivers_title"
-                    android:entries="@array/drivers_initial_entries"
-                    android:entryValues="@array/drivers_initial_values"
-                    android:persistent="true"/>
+                <EditTextPreference
+                android:key="writein_driver_name_key"
+                android:dialogTitle="Write the name of the driver"
+                android:title="...or just write the name of the driver you wish to follow"
+                android:singleLineTitle="false"
+                android:id="@+id/id_writein_driver_name"
+                android:dialogMessage="Name of the driver as it appears in the live results."
+                app:useSimpleSummaryProvider="true"
+                android:persistent="true"/>
+
+                <SwitchPreference
+                        android:key="match_writein_prefix_key"
+                        android:title="Prefix match"
+                        android:summary="Match all drivers who's name begins like that. For example you can type just the first name."
+                        android:defaultValue="true"
+                        android:id="@+id/id_match_writein_prefix"
+                        android:persistent="true"/>
 
                 <SwitchPreference
                     android:key="auto_favorite_key"
                     android:dialogTitle="@string/auto_favorite_title"
                     android:title="@string/auto_favorite_title"
                     android:defaultValue="true"
+                    android:persistent="true"/>
+
+                <MultiSelectListPreference
+                    android:key="favorited_drivers_key"
+                    android:dialogTitle="@string/favorited_drivers_dialog_title"
+                    android:title="Saved drivers"
+                    android:entries="@array/drivers_initial_entries"
+                    android:entryValues="@array/drivers_initial_values"
+                    android:dependency="auto_favorite_key"
                     android:persistent="true"/>
 
         </PreferenceCategory>
@@ -39,7 +59,7 @@
                     android:entries="@array/speaker_choices"
                     android:entryValues="@array/speaker_class_names"
                     android:key="@string/key_speaker"
-                    android:summary="%s"
+                    app:useSimpleSummaryProvider="true"
                     android:title="@string/speaker_title" />
 
         </PreferenceCategory>
@@ -51,7 +71,7 @@
                     android:entries="@array/collect_sensor_data_choices"
                     android:entryValues="@array/collect_sensor_data_values"
                     android:key="collect_sensor_data_key"
-                    android:summary="%s"
+                    app:useSimpleSummaryProvider="true"
                     android:title="Collect sensor data with phone" />
 
         </PreferenceCategory>

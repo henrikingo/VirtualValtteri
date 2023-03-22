@@ -1,4 +1,4 @@
-package com.virtualvaltteri;
+package com.virtualvaltteri.settings;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -6,15 +6,19 @@ import android.util.AttributeSet;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.MultiSelectListPreference;
+import androidx.preference.Preference;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 public class DynamicMultiSelectListPreference extends MultiSelectListPreference {
     public Set<String> favoritedDrivers;
     public DynamicMultiSelectListPreference(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
+        System.out.println("NEW Multipreference created");
     }
 
     public DynamicMultiSelectListPreference(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -46,6 +50,7 @@ public class DynamicMultiSelectListPreference extends MultiSelectListPreference 
         Set<String> currentFollows = new HashSet<>();
         Set<String> oldFollows = new HashSet<>();
 
+
         // Values will include also drivers that were followed in previous races but aren't in this race.
         // For clarity, leave them out and show them in a separate list.
         for (CharSequence entry: entries) {
@@ -62,11 +67,30 @@ public class DynamicMultiSelectListPreference extends MultiSelectListPreference 
         }
         return oldFollows;
     }
+    private boolean preventLooping = false;
+    public void STOPonDependencyChanged(Preference dependency, boolean disableDependent){
+        System.out.println("ondependency changed " + preventLooping);
+        if(preventLooping) return;
+
+        if(dependency.getKey().equals("writein_driver_name_key")){
+            preventLooping=true;
+            ((SettingsActivity)getContext()).mySettingsFragment.refreshEverything();
+            preventLooping=false;
+        }
+
+    }
+
     public Set<String> getReducedValues(boolean currentSession){
-        Set<String> values = new HashSet<>(super.getValues());
+        SortedSet<String> values = new ConcurrentSkipListSet<>(super.getValues());
         System.out.println("getReducedValues() initial getValues()" + values);
         CharSequence[] entries = getEntries();
         return getReducedValuesHelper(currentSession, values, entries);
     }
 
+    // Never return null
+    public CharSequence[] getEntries(){
+        if(super.getEntries()!=null)return super.getEntries();
+
+        return new CharSequence[0];
+    }
 }

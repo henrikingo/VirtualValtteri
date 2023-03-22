@@ -1,27 +1,37 @@
-package com.virtualvaltteri;
+package com.virtualvaltteri.settings;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.view.View;
+import android.widget.FrameLayout;
 
 import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceManager;
 
+import com.virtualvaltteri.R;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class SettingsActivity extends AppCompatActivity {
 
     private ArrayList<CharSequence> sortedDriversFromIntent;
-    private CharSequence[] sortedDriversArray;
-    private Intent returnIntent;
-    private boolean autoAddFavorites;
+    public CharSequence[] sortedDriversArray;
+    public Intent returnIntent;
+    static SettingsFragment mySettingsFragment;
+    Preference.OnPreferenceChangeListener prefChanged;
     public SettingsActivity(){
         super();
     }
@@ -31,6 +41,13 @@ public class SettingsActivity extends AppCompatActivity {
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        if(savedInstanceState==null) {
+            //This happens on first create and is apparently ok...
+        } else if (savedInstanceState.size()==0){
+            System.out.println("Yup it was null...");
+            //Silly Android...
+            savedInstanceState.putInt("foo",0);
+        }
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
@@ -42,7 +59,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
         returnIntent = new Intent();
 
-        Preference.OnPreferenceChangeListener prefChanged = new Preference.OnPreferenceChangeListener() {
+        prefChanged = new Preference.OnPreferenceChangeListener() {
             public boolean onPreferenceChange(Preference preference, Object value) {
                 System.out.println("prefChanged: " + preference.getKey() + " = " + value);
                 if(preference.getKey().equals("speaker_key")){
@@ -67,13 +84,30 @@ public class SettingsActivity extends AppCompatActivity {
         };
 
 
-        SharedPreferences p = PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this);
-        SettingsFragment mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray, returnIntent);
-        // below line is used to check if
-        // frame layout is empty or not.
-        if (findViewById(R.id.settingsLayout) != null) {
-            // below line is to inflate our fragment.
-            getSupportFragmentManager().beginTransaction().add(R.id.settingsLayout, mySettingsFragment).commit();
+        SharedPreferences p = getSharedPreferences("com.virtualvaltteri", MODE_PRIVATE);
+        if(mySettingsFragment==null) {
+            mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray);
+            FrameLayout v = findViewById(R.id.settingsLayout);
+            System.out.println(v.getChildCount());
+            if (v != null) {
+                // below line is to inflate our fragment.
+                getSupportFragmentManager().beginTransaction().add(R.id.settingsLayout, mySettingsFragment).commit();
+            }
         }
+        else {
+            System.out.println("ELSE");
+            FrameLayout v = findViewById(R.id.settingsLayout);
+            System.out.println(v.getChildCount());
+            if (v != null) {
+                // below line is to inflate our fragment.
+                getSupportFragmentManager().beginTransaction().replace(R.id.settingsLayout, mySettingsFragment).commit();
+            }
+
+        }
+    }
+    public void onStop (){
+        super.onStop();
+        setResult(Activity.RESULT_OK,returnIntent);
+
     }
 }

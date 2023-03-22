@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.virtualvaltteri.SettingsActivity"
+            android:name="com.virtualvaltteri.settings.SettingsActivity"
             android:screenOrientation="user"
             android:exported="true" >
         </activity>

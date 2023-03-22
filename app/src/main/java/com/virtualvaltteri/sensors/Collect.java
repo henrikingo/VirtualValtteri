@@ -62,7 +62,7 @@ public class Collect implements SensorEventListenerWrapper {
         looper = new LooperThread();
         looper.start();
 
-        SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences("com.virtualvaltteri", Context.MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("on")) startSensors();
@@ -70,7 +70,7 @@ public class Collect implements SensorEventListenerWrapper {
     }
 
     public void raceStarted(){
-        SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences("com.virtualvaltteri", Context.MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("race")){
@@ -81,7 +81,7 @@ public class Collect implements SensorEventListenerWrapper {
         }
     }
     public void raceStopped(){
-        SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences("com.virtualvaltteri", Context.MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("race")){
@@ -133,22 +133,24 @@ public class Collect implements SensorEventListenerWrapper {
             if(!e.getMessage().equals("Stream closed"))
                 e.printStackTrace();
         }
-        String fileName = "VirtualValtteri.vmkarting." + startTime + ".java.ArrayList.serialized";
-        try {
-            fileName = (context.getExternalFilesDir("sensordata").getAbsolutePath() + "/" + fileName);
-            System.out.println("Dumping sensor data to file: " + fileName);
-            FileOutputStream fos = new FileOutputStream(fileName);
-            ObjectOutputStream os = new ObjectOutputStream(fos);
-            os.writeObject(data);
-            os.flush();
-            os.close();
-        } catch (IOException e) {
-            System.out.println("Cannot open file " + fileName);
-            System.out.println("Failed to dump sensor data as binary (Serialized) file. Your CSV file might be good though?");
-            e.printStackTrace();
-            return false;
-        } finally {
-            started = false;
+        if(started){
+            String fileName = "VirtualValtteri.vmkarting." + startTime + ".java.ArrayList.serialized";
+            try {
+                fileName = (context.getExternalFilesDir("sensordata").getAbsolutePath() + "/" + fileName);
+                System.out.println("Dumping sensor data to file: " + fileName);
+                FileOutputStream fos = new FileOutputStream(fileName);
+                ObjectOutputStream os = new ObjectOutputStream(fos);
+                os.writeObject(data);
+                os.flush();
+                os.close();
+            } catch (IOException e) {
+                System.out.println("Cannot open file " + fileName);
+                System.out.println("Failed to dump sensor data as binary (Serialized) file. Your CSV file might be good though?");
+                e.printStackTrace();
+                return false;
+            } finally {
+                started = false;
+            }
         }
         started = false;
         return started;

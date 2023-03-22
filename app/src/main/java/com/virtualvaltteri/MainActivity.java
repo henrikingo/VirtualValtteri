@@ -13,10 +13,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -26,8 +23,7 @@ import android.os.PowerManager;
 import android.net.Uri;
 import android.provider.Settings;
 
-import com.virtualvaltteri.sensors.RaceEventSensor;
-import com.virtualvaltteri.sensors.SensorWrapper;
+import com.virtualvaltteri.settings.SettingsActivity;
 import com.virtualvaltteri.speaker.Speaker;
 
 import java.io.BufferedReader;
@@ -105,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
-        SharedPreferences prefs = getSharedPreferences(getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("com.virtualvaltteri", MODE_PRIVATE);
         followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
         System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
         followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
@@ -244,12 +240,14 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        SharedPreferences prefs = getSharedPreferences(getPackageName() + "_preferences" ,Context.MODE_PRIVATE);
-        if(followDriverNames.isEmpty() && !prefs.contains("seen_hint")){
+        SharedPreferences prefs = getSharedPreferences("com.virtualvaltteri", MODE_PRIVATE);
+        if(prefs.contains("seen_hint") ) {
+            ((TextView) findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
+        } else if ( followDriverNames.isEmpty() && !(prefs.getString("writein_driver_name_key", "")).equals("")) {
             ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.VISIBLE);
         }
         else {
-            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
+            ((TextView) findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
             prefs.edit().putString("seen_hint", "true").commit();
         }
         if(prefs.contains("collect_sensor_data_key")){
