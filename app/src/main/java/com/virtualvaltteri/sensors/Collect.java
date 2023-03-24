@@ -10,6 +10,7 @@ import android.os.Message;
 import android.text.format.DateFormat;
 
 import com.opencsv.CSVWriter;
+import com.virtualvaltteri.MainActivity;
 
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -62,7 +63,7 @@ public class Collect implements SensorEventListenerWrapper {
         looper = new LooperThread();
         looper.start();
 
-        SharedPreferences prefs = context.getSharedPreferences("com.virtualvaltteri", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, Context.MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("on")) startSensors();
@@ -70,7 +71,7 @@ public class Collect implements SensorEventListenerWrapper {
     }
 
     public void raceStarted(){
-        SharedPreferences prefs = context.getSharedPreferences("com.virtualvaltteri", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, Context.MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("race")){
@@ -81,7 +82,7 @@ public class Collect implements SensorEventListenerWrapper {
         }
     }
     public void raceStopped(){
-        SharedPreferences prefs = context.getSharedPreferences("com.virtualvaltteri", Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, Context.MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("race")){

@@ -9,6 +9,9 @@ public class Quiet extends Speaker {
     public String title(String words) {
         return "";
     }
+    public String comment(String words){
+        return "";
+    }
 
     public String time_meta(String meta) {
         return "";

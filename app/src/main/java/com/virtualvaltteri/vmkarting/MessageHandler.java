@@ -96,6 +96,9 @@ public class MessageHandler {
                         System.out.println(driverIdLookup.toString());
                         System.out.println(driverLookup.toString());
                         englishMessageMap.put("driversCount", "" + driverIdLookup.keySet().size());
+                        if(!followAnyDriver()){
+                            englishMessage.append(speaker.comment("Please select a driver from this session. "));
+                        }
                         break;
                     case "com":
                         if(parts.length >= 3 && parts[2].contains("<span data-flag=\"chequered\"></span>Finish")){
@@ -215,8 +218,12 @@ public class MessageHandler {
         }
     }
     private boolean followThisDriver(DriverState d){
-        // If no filter specified, just read out everything
-        if (d==null || followDriverNames.isEmpty())
+        // If no driver is specified, stay silent
+        if (followDriverNames.isEmpty())
+            return false;
+        // This typically means some generic info, not attached to a specific driver
+        // Return true for convenience
+        if (d==null)
             return true;
 
         for(String driverName: followDriverNames){
@@ -226,6 +233,19 @@ public class MessageHandler {
         return false;
     }
 
+    private boolean followAnyDriver(){
+        System.out.println(followDriverNames.size());
+        for (String followDriver: followDriverNames){
+            System.out.println(followDriver);
+            for(String sessionDriver: driverIdLookup.keySet()){
+                System.out.println("   " + sessionDriver);
+                if(sessionDriver.startsWith(followDriver)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     private void parseInitHtml(String html){
         String validHtml = "<html><head></head><body><table>"+html+"</table></body></html>";
         Document table = Jsoup.parse(validHtml);

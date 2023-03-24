@@ -20,6 +20,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SwitchPreference;
 
+import com.virtualvaltteri.MainActivity;
 import com.virtualvaltteri.R;
 
 import java.util.ArrayList;
@@ -121,12 +122,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         final Preference prefList = findPreference("speaker_key");
         prefList.setOnPreferenceChangeListener(prefChanged);
 
-        SharedPreferences prefs = getContext().getSharedPreferences("com.virtualvaltteri", MODE_PRIVATE);
+        SharedPreferences prefs = getContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
                 System.out.println("onSharedPreferenceChanged");
-                System.out.println("onBindEditText()");
                 if(refreshing){
                     System.out.println("skipping refresh, already done somewhere else");
                 }

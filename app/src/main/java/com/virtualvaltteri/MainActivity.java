@@ -48,6 +48,7 @@ import com.virtualvaltteri.speaker.Quiet;
 import com.virtualvaltteri.vmkarting.MessageHandler;
 
 public class MainActivity extends AppCompatActivity {
+    public final static String SHARED_PREFS_MAGIC_WORD = "com.virtualvaltteri_preferences";
     // Get WebSocket URL from properties file
     String websocketUrl = null;
     String testRun = "false";
@@ -101,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
-        SharedPreferences prefs = getSharedPreferences("com.virtualvaltteri", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
         System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
         followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
@@ -141,19 +142,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         AssetManager assetManager = getAssets();
-        try {
-            InputStream inputStream = assetManager.open("config.properties");
-            Properties properties = new Properties();
-            properties.load(inputStream);
-            websocketUrl = properties.getProperty("websocket.url");
-            testRun = properties.getProperty("testrun");
-            ttsPitch = Float.parseFloat(properties.getProperty("tts.pitch", "" + ttsPitch));
-            ttsVoice = properties.getProperty("tts.voice", ttsVoice);
-            // This is the main audio stream managed by your hardware up-down key
-            setVolumeControlStream(AudioManager.STREAM_MUSIC);
-        } catch (IOException e) {
-            System.out.println("Failed to read properties file: " + e.getMessage());
-        }
+        websocketUrl = getString(R.string.url);
+        testRun = getString(R.string.testrun);
+
+        ttsPitch = Float.parseFloat(getString(R.string.ttspitch));
+        ttsVoice = getString(R.string.ttsvoice);
+
+        // This is the main audio stream managed by your hardware up-down key
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+
 
         // Run also when in background
         Intent intent = new Intent();
@@ -240,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-        SharedPreferences prefs = getSharedPreferences("com.virtualvaltteri", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         if(prefs.contains("seen_hint") ) {
             ((TextView) findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
         } else if ( followDriverNames.isEmpty() && !(prefs.getString("writein_driver_name_key", "")).equals("")) {
@@ -264,7 +261,6 @@ public class MainActivity extends AppCompatActivity {
         tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);
         AssetManager assetManager = getAssets();
 
-//        System.out.println("testrun is: "+testRun);
         if (testRun.startsWith("true")) {
             System.out.println("Doing test run with test data, no network connections created.");
             try {

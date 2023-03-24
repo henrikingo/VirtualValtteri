@@ -34,6 +34,7 @@ public class Speaker {
     public String title(String words) {
         return words;
     }
+    public String comment(String words){return words;}
 
     public String time_meta(String meta) {
         if(meta.equals("improved"))

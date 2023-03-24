@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceManager;
 
+import com.virtualvaltteri.MainActivity;
 import com.virtualvaltteri.R;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         if(savedInstanceState==null) {
             //This happens on first create and is apparently ok...
         } else if (savedInstanceState.size()==0){
@@ -84,7 +86,7 @@ public class SettingsActivity extends AppCompatActivity {
         };
 
 
-        SharedPreferences p = getSharedPreferences("com.virtualvaltteri", MODE_PRIVATE);
+        SharedPreferences p = getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         if(mySettingsFragment==null) {
             mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray);
             FrameLayout v = findViewById(R.id.settingsLayout);
