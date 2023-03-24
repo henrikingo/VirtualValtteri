@@ -236,6 +236,9 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("onActivityResult() followDriverNames" + followDriverNames);
                 }
             }
+            SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+            followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
+            System.out.println("OnActivityResult: Using drivers from from shared preferences storage: " + followDriverIds);
         }
         SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         if(prefs.contains("seen_hint") ) {
