@@ -95,7 +95,6 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         else {
-            System.out.println("ELSE");
             FrameLayout v = findViewById(R.id.settingsLayout);
             System.out.println(v.getChildCount());
             if (v != null) {

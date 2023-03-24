@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SettingsFragment extends PreferenceFragmentCompat implements EditTextPreference.OnBindEditTextListener, Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
+public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
     public CharSequence[] sortedDrivers;
     public DynamicMultiSelectListPreference driversPreference;
     public MultiSelectListPreference favoritedDriversPreference;
@@ -136,34 +136,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements EditTe
             }
         });
         EditTextPreference writein = (EditTextPreference) findPreference("writein_driver_name_key");
-        writein.setOnBindEditTextListener(this);
-        writein.setOnPreferenceClickListener(this);
-        favoritedDriversPreference.setOnPreferenceClickListener(this);
-        driversPreference.setOnPreferenceClickListener(this);
         SwitchPreference autoFavoritePreference = ((SwitchPreference)findPreference("auto_favorite_key"));
-        autoFavoritePreference.setOnPreferenceClickListener(this);
         writein.setOnPreferenceChangeListener(this);
         autoFavoritePreference.setOnPreferenceChangeListener(this);
         driversPreference.setOnPreferenceChangeListener(this);
         favoritedDriversPreference.setOnPreferenceChangeListener(this);
 
     }
-    public void onBindEditText(EditText editText) {
-        System.out.println("onBindEditText()");
-        if(refreshing){
-            System.out.println("skipping refresh, already done somewhere else");
-        }
-        refreshing = true;
-        refreshEverything();
-        refreshing = false;
-    }
-
-   // public void onViewCreated(View view, Bundle savedInstanceState){
-     //   super.onViewCreated(view,savedInstanceState);
-        //System.out.println("onViewCreated");
-        // Because sometimes onCreate() didn't have getContext() yet
-        //refreshEverything();
-    //}
     public void refreshEverything (){
 
         // below line is used to add preference
@@ -271,47 +250,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements EditTe
         });
 
     }
-    public boolean onPreferenceTreeClick(@NonNull Preference preference){
-        super.onPreferenceTreeClick(preference);
-        System.out.println("onPreferenceTreeClick()");
-        if(refreshing){
-            System.out.println("skipping refresh, already done somewhere else");
-        }
-        refreshing = true;
-        refreshEverything();
-        refreshing = false;
-        return true;
-    }
-    public void onStop(){
-        super.onStop();
-        System.out.println("onStop() - one more for the road. At least this one they must call?");
-        if(refreshing){
-            System.out.println("skipping refresh, already done somewhere else");
-        }
-        refreshing = true;
-        refreshEverything();
-        refreshing = false;
-        // Need to signal back here, too, because of ourse there's a race condition...
-        //Moved to SettingsActivity.onStop();
-
-
-    }
-
-    @Override
-    public boolean onPreferenceClick(@NonNull Preference preference) {
-        System.out.println("opreferenceclick");
-        if(refreshing){
-            System.out.println("skipping refresh, already done somewhere else");
-        }
-        refreshing = true;
-        refreshEverything();
-        refreshing = false;
-        return true;
-    }
-
     @Override
     public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
-        System.out.println("onpreferencechange");
+        System.out.println("onPreferenceChange");
         if(refreshing){
             System.out.println("skipping refresh, already done somewhere else");
         }
@@ -343,24 +284,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements EditTe
                 }
 
                 driversPreference.setValues(newFollowDrivers);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 refreshing=false;
                 // Returning false to caller means we already took care of everything, don't go and set any values behind our back
                 return false;
