@@ -24,6 +24,7 @@
                 android:id="@+id/id_writein_driver_name"
                 android:dialogMessage="Name of the driver as it appears in the live results."
                 app:useSimpleSummaryProvider="true"
+                android:defaultValue=""
                 android:persistent="true"/>
 
                 <SwitchPreference
