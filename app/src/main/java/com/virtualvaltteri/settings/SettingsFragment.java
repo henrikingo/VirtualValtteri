@@ -148,7 +148,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         // below line is used to add preference
         // fragment from our xml folder.
 
-        CharSequence writeInName = ((EditTextPreference)findPreference("writein_driver_name_key")).getText().toLowerCase();
+        CharSequence writeInName = ((EditTextPreference)findPreference("writein_driver_name_key")).getText();
+        if(writeInName!=null)
+            writeInName= ((String) writeInName).toLowerCase();
         boolean matchPrefix = ((SwitchPreference)findPreference("match_writein_prefix_key")).isChecked();
         System.out.println("writein name: " + writeInName);
         boolean autoFavorite = ((SwitchPreference)findPreference("auto_favorite_key")).isChecked();
