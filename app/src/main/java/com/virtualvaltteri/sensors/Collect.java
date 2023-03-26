@@ -168,9 +168,6 @@ public class Collect implements SensorEventListenerWrapper {
         looper.mHandler.sendMessage(msg);
     }
 
-    private SensorEventWrapper previous_accelerometer;
-    private SensorEventWrapper previous_acceleration;
-
     class LooperThread extends Thread {
         public Handler mHandler;
         private int sampler=0;
@@ -188,10 +185,6 @@ public class Collect implements SensorEventListenerWrapper {
                     if(sampler%1000==0){
                         //System.out.println("Sampling every 1000 sensor events: " + msg + " " + ((SensorEventWrapper)msg.obj));
 
-                    }
-                    SensorEventWrapper sensorEvent = (SensorEventWrapper)msg.obj;
-                    if(sensorEvent.sensor.TYPE==Sensor.TYPE_ACCELEROMETER){
-                        previous_accelerometer=sensorEvent;
                     }
                 }
             };
