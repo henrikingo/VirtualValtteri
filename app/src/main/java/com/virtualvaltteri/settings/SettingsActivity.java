@@ -89,21 +89,12 @@ public class SettingsActivity extends AppCompatActivity {
         SharedPreferences p = getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         if(mySettingsFragment==null) {
             mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray);
-            FrameLayout v = findViewById(R.id.settingsLayout);
-            System.out.println(v.getChildCount());
-            if (v != null) {
-                // below line is to inflate our fragment.
-                getSupportFragmentManager().beginTransaction().add(R.id.settingsLayout, mySettingsFragment).commit();
-            }
         }
-        else {
-            FrameLayout v = findViewById(R.id.settingsLayout);
-            System.out.println(v.getChildCount());
-            if (v != null) {
-                // below line is to inflate our fragment.
-                getSupportFragmentManager().beginTransaction().replace(R.id.settingsLayout, mySettingsFragment).commit();
-            }
-
+        FrameLayout v = findViewById(R.id.settingsLayout);
+        System.out.println(v.getChildCount());
+        if (v != null) {
+            // below line is to inflate our fragment.
+            getSupportFragmentManager().beginTransaction().add(R.id.settingsLayout, mySettingsFragment).commit();
         }
     }
     public void onStop (){

@@ -64,13 +64,12 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
 
     public CharSequence _matchDriver(CharSequence matchDriver, boolean matchPrefix, boolean currentSession){
         if(matchDriver==null) return null;
-        if(matchPrefix){
-            matchDriver = new StringBuilder(matchDriver).append(".*");
+        if(matchPrefix && !matchDriver.equals("")){
+            matchDriver = new StringBuilder("^").append(matchDriver).append(".*");
         }
         else {
-            matchDriver = new StringBuilder(matchDriver).append("$");
+            matchDriver = new StringBuilder("^").append(matchDriver).append("$");
         }
-        Set<String> driversList = driversPreference.getReducedValues(currentSession);
 
         Pattern pattern = Pattern.compile(matchDriver.toString(), Pattern.CASE_INSENSITIVE);
         for(CharSequence d: sortedDrivers){

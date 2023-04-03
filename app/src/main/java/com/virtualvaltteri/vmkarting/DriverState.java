@@ -30,4 +30,8 @@ public class DriverState {
     public String S1Times[];
     public String S2Times[];
 
+    public String toString(){
+        return String.format("%s: %s %s", id, carNr, name) ;
+    }
+
 }

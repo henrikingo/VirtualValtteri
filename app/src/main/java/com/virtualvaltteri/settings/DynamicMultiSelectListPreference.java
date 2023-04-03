@@ -68,17 +68,6 @@ public class DynamicMultiSelectListPreference extends MultiSelectListPreference 
         return oldFollows;
     }
     private boolean preventLooping = false;
-    public void STOPonDependencyChanged(Preference dependency, boolean disableDependent){
-        System.out.println("ondependency changed " + preventLooping);
-        if(preventLooping) return;
-
-        if(dependency.getKey().equals("writein_driver_name_key")){
-            preventLooping=true;
-            ((SettingsActivity)getContext()).mySettingsFragment.refreshEverything();
-            preventLooping=false;
-        }
-
-    }
 
     public Set<String> getReducedValues(boolean currentSession){
         SortedSet<String> values = new ConcurrentSkipListSet<>(super.getValues());

@@ -6,7 +6,6 @@
         <PreferenceCategory android:title="Drivers">
                 <com.virtualvaltteri.settings.DynamicMultiSelectListPreference
                     android:key="drivers_key"
-                    android:dependency="writein_driver_name_key"
                     android:dialogTitle="@string/drivers_title"
                     android:summary=""
                     android:title="@string/drivers_title"

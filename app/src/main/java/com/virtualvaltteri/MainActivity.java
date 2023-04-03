@@ -107,16 +107,9 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
         followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
         String speaker = prefs.getString("speaker_key", null);
-        TextView mHint = (TextView)findViewById(R.id.idTextHint);
-        if(mHint!=null){
-            if(followDriverNames.isEmpty() && !prefs.contains("seen_hint")){
-                mHint.setVisibility(View.VISIBLE);
-            }
-            else {
-                mHint.setVisibility(View.INVISIBLE);
-                prefs.edit().putString("seen_hint", "true");
-            }
-        }
+
+        setHintVisibility();
+
         if(collect==null){
             System.out.println("Create Collect object to manage sensors");
             collect = new Collect(this);
@@ -141,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        AssetManager assetManager = getAssets();
         websocketUrl = getString(R.string.url);
         testRun = getString(R.string.testrun);
 
@@ -191,12 +183,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public boolean TODO(boolean returnValue){
-        return returnValue;
-    }
-    public boolean TODO(){
-        return TODO(true);
-    }
     protected String cutDecimal(String d){
         int dot = d.indexOf(".");
         if (dot >= 1){
@@ -204,10 +190,24 @@ public class MainActivity extends AppCompatActivity {
         }
         return d;
     }
+    private void setHintVisibility(){
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        TextView mHint = (TextView)findViewById(R.id.idTextHint);
+        if(prefs.contains("seen_hint") ) {
+            mHint.setVisibility(View.INVISIBLE);
+        } else if ( followDriverNames.isEmpty() && (prefs.getString("writein_driver_name_key", "")).equals("")) {
+            mHint.setVisibility(View.VISIBLE);
+        }
+        else {
+            mHint.setVisibility(View.INVISIBLE);
+            prefs.edit().putString("seen_hint", "true").commit();
+        }
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         System.out.println("MainActivity.onActivityResult() " +requestCode + " " + resultCode + " " + data);
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_OK) {
                 String speaker = data.getStringExtra("settings_speaker");
@@ -236,19 +236,8 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println("onActivityResult() followDriverNames" + followDriverNames);
                 }
             }
-            SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
             followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
             System.out.println("OnActivityResult: Using drivers from from shared preferences storage: " + followDriverIds);
-        }
-        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
-        if(prefs.contains("seen_hint") ) {
-            ((TextView) findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
-        } else if ( followDriverNames.isEmpty() && !(prefs.getString("writein_driver_name_key", "")).equals("")) {
-            ((TextView)findViewById(R.id.idTextHint)).setVisibility(View.VISIBLE);
-        }
-        else {
-            ((TextView) findViewById(R.id.idTextHint)).setVisibility(View.INVISIBLE);
-            prefs.edit().putString("seen_hint", "true").commit();
         }
         if(prefs.contains("collect_sensor_data_key")){
             if(prefs.getString("collect_sensor_data_key", "off").equals("on")){
@@ -258,6 +247,7 @@ public class MainActivity extends AppCompatActivity {
                 collect.stopSensors();
             }
         }
+        setHintVisibility();
     }
     public void ttsDone() {
         mTextView = findViewById(R.id.text_view);
