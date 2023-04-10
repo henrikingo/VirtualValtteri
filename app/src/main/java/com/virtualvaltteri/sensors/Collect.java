@@ -30,10 +30,14 @@ public class Collect implements SensorEventListenerWrapper {
     private SensorWrapper rotation;
     private SensorWrapper race;
 
-
     //public ConcurrentLinkedDeque<SensorEventWrapper> data;
     public List<SensorEventWrapper> data;
     CSVWriter writer = null;
+    public final int csvCols=22;
+    public final String[] csvColumnNames = {
+            "timestamp","type","sensortype","vendor","version","x","y","z","zz","quality",
+            "pad11","pad12","pad13","pad14","pad15","pad16","pad17","pad18","pad19","pad20","pad21","pad22"
+    };
     Context context;
     CharSequence startTime = null;
     public boolean started = false;
@@ -103,6 +107,7 @@ public class Collect implements SensorEventListenerWrapper {
             fileName = (context.getExternalFilesDir("sensordata").getAbsolutePath() + "/" + fileName);
             System.out.println("Writing sensor data to file: " + fileName);
             writer = new CSVWriter(new FileWriter(fileName));
+            writer.writeNext(csvColumnNames);
         } catch (IOException e) {
             System.out.println("Cannot open file " + fileName);
             System.out.println("Will not collect sensor metrics but other than that you can continue as before.");
@@ -215,9 +220,7 @@ public class Collect implements SensorEventListenerWrapper {
             System.out.println("What kind of event has no sensor? " + event.values);
             return;
         }
-        int arrayLength = event.values.length + event.stringValues.length + 5;
-        arrayLength=22;
-        String[] csvStrings = new String[arrayLength];
+        String[] csvStrings = new String[csvCols];
         csvStrings[0] = ""+event.timestamp;
         csvStrings[1] = ""+event.sensor.getType();
         csvStrings[2] = ""+event.sensor.getStringType();
@@ -230,7 +233,7 @@ public class Collect implements SensorEventListenerWrapper {
         for(j = 0; j<event.stringValues.length; j++)
             csvStrings[j+i+5] = ""+event.stringValues[j];
         // Padding to even length
-        for(int k=j+i+5;k<arrayLength;k++){
+        for(int k=j+i+5;k<csvCols;k++){
             csvStrings[k]="";
         }
 
