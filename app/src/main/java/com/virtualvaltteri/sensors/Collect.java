@@ -216,6 +216,7 @@ public class Collect implements SensorEventListenerWrapper {
             return;
         }
         int arrayLength = event.values.length + event.stringValues.length + 5;
+        arrayLength=22;
         String[] csvStrings = new String[arrayLength];
         csvStrings[0] = ""+event.timestamp;
         csvStrings[1] = ""+event.sensor.getType();
@@ -225,8 +226,13 @@ public class Collect implements SensorEventListenerWrapper {
         int i = 0;
         for(i = 0; i<event.values.length; i++)
             csvStrings[i+5] = ""+event.values[i];
-        for(int j = 0; j<event.stringValues.length; j++)
+        int j=0;
+        for(j = 0; j<event.stringValues.length; j++)
             csvStrings[j+i+5] = ""+event.stringValues[j];
+        // Padding to even length
+        for(int k=j+i+5;k<arrayLength;k++){
+            csvStrings[k]="";
+        }
 
         //System.out.println(String.join(",",csvStrings));
         writer.writeNext(csvStrings, false);

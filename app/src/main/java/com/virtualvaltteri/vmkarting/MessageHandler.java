@@ -45,7 +45,6 @@ public class MessageHandler {
         if (latestDriver != null && !latestDriver.equals(d.id)) {
             latestDriver = d.id;
             englishMessageMap.put("driverChanged", "true");
-            raceEventSensor.triggerEvent("driver", d.carNr, "r"+driverId, d.name);
         }
         return d;
     }
