@@ -217,7 +217,6 @@ public class Collect implements SensorEventListenerWrapper {
                     if( ts > lastNotification + sec15) {
                         updateNotification();
                         lastNotification = ts;
-                        System.out.println(ts-lastNotification-sec15);
                     }
 
                     addValtteriEvent((SensorEventWrapper) msg.obj);
