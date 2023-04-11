@@ -3,6 +3,7 @@ package com.virtualvaltteri.speaker;
 import com.virtualvaltteri.vmkarting.DriverState;
 
 public class Quiet extends Speaker {
+    final public String type = "Quiet";
     public String init(String argument) {
         return "";
     }

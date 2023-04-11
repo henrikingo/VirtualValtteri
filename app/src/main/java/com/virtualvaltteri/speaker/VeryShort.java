@@ -3,6 +3,7 @@ package com.virtualvaltteri.speaker;
 import com.virtualvaltteri.vmkarting.DriverState;
 
 public class VeryShort extends Speaker {
+    final public String type = "VeryShort";
     @Override
     public String title(String words) {
         return "";

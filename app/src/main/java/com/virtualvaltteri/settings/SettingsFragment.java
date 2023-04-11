@@ -72,11 +72,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         }
 
         Pattern pattern = Pattern.compile(matchDriver.toString(), Pattern.CASE_INSENSITIVE);
-        for(CharSequence d: sortedDrivers){
-            Matcher matcher = pattern.matcher(d);
-            if(matcher.find()) {
-                // Return the exact string used as the value for the driver setting
-                return d;
+        if(sortedDrivers!=null){
+            for(CharSequence d: sortedDrivers){
+                Matcher matcher = pattern.matcher(d);
+                if(matcher.find()) {
+                    // Return the exact string used as the value for the driver setting
+                    return d;
+                }
             }
         }
         return null;
@@ -218,9 +220,11 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
             favoritedDriversPreference.setEntryValues((CharSequence[]) prunedEntries.toArray(new CharSequence[0]));
         }
 
-        for (CharSequence s: allDriversInThisSession){
-            if(favDrivers.contains(s) && !followDriversInThisSession.contains(s)){
-                followDriversInThisSession.add(s.toString());
+        if(allDriversInThisSession!=null){
+            for (CharSequence s: allDriversInThisSession){
+                if(favDrivers.contains(s) && !followDriversInThisSession.contains(s)){
+                    followDriversInThisSession.add(s.toString());
+                }
             }
         }
 

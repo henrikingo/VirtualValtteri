@@ -1,25 +1,45 @@
 package com.virtualvaltteri.sensors;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.format.DateFormat;
 
+import androidx.core.app.NotificationChannelCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+
 import com.opencsv.CSVWriter;
 import com.virtualvaltteri.MainActivity;
+import com.virtualvaltteri.R;
+import com.virtualvaltteri.settings.SettingsActivity;
 
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Collect implements SensorEventListenerWrapper {
@@ -33,13 +53,18 @@ public class Collect implements SensorEventListenerWrapper {
     //public ConcurrentLinkedDeque<SensorEventWrapper> data;
     public List<SensorEventWrapper> data;
     CSVWriter writer = null;
+    String filename;
+    String fullPath=null;
+    Notification notification = null;
     public final int csvCols=22;
     public final String[] csvColumnNames = {
             "timestamp","type","sensortype","vendor","version","x","y","z","zz","quality",
             "pad11","pad12","pad13","pad14","pad15","pad16","pad17","pad18","pad19","pad20","pad21","pad22"
     };
+    NotificationChannel channel;
     Context context;
     CharSequence startTime = null;
+    Date startTimeObj = null;
     public boolean started = false;
     private LooperThread looper;
     private static Collect singletonInstance;
@@ -72,6 +97,8 @@ public class Collect implements SensorEventListenerWrapper {
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("on")) startSensors();
         if(settingMode.equals("off")) stopSensors();
+
+         createNotificationChannel();
     }
 
     public void raceStarted(){
@@ -101,15 +128,16 @@ public class Collect implements SensorEventListenerWrapper {
 
         //data = new ConcurrentLinkedDeque<>(new ArrayList<SensorEventWrapper>(2*60*(samplingPeriod/1000/1000)));
         data = new ArrayList<SensorEventWrapper>(2*60*(samplingPeriod/1000/1000));
-        startTime = DateFormat.format("yyyy-MM-dd-hh-mm-s", new Date());
-        String fileName = "VirtualValtteri.vmkarting." + startTime + ".csv";
+        startTimeObj = new Date();
+        startTime = DateFormat.format("yyyy-MM-dd-hh-mm-s", startTimeObj);
+        filename = "vmkarting." + startTime + ".csv";
+        fullPath = (context.getExternalFilesDir("sensordata").getAbsolutePath() + "/" + filename);
         try {
-            fileName = (context.getExternalFilesDir("sensordata").getAbsolutePath() + "/" + fileName);
-            System.out.println("Writing sensor data to file: " + fileName);
-            writer = new CSVWriter(new FileWriter(fileName));
+            System.out.println("Writing sensor data to file: " + fullPath);
+            writer = new CSVWriter(new FileWriter(fullPath));
             writer.writeNext(csvColumnNames);
         } catch (IOException e) {
-            System.out.println("Cannot open file " + fileName);
+            System.out.println("Cannot open file " + fullPath);
             System.out.println("Will not collect sensor metrics but other than that you can continue as before.");
             e.printStackTrace();
             started = false;
@@ -120,7 +148,7 @@ public class Collect implements SensorEventListenerWrapper {
         sensorManager.registerListener(this, rotation, samplingPeriod);
         sensorManager.registerListener(this, race, samplingPeriod);
         started = true;
-
+        showCollectNotification(filename);
         return true;
     }
     public boolean stopSensors() {
@@ -159,6 +187,7 @@ public class Collect implements SensorEventListenerWrapper {
             }
         }
         started = false;
+        stopNotification();
         return started;
     }
 
@@ -176,16 +205,22 @@ public class Collect implements SensorEventListenerWrapper {
     class LooperThread extends Thread {
         public Handler mHandler;
         private int sampler=0;
-
+        public long lastNotification=-1;
+        final public long sec15 = 15*1000*1000*1000;
         public void run() {
             Looper.prepare();
 
             mHandler = new Handler(Looper.myLooper()) {
                 public void handleMessage(Message msg) {
-                    //System.out.println("handleMessage" + msg.obj);
-                    // System.out.print(((SensorEventWrapper)msg.obj).sensor.getStringType() + " ");
+                    long ts = ((SensorEventWrapper)msg.obj).timestamp;
+
+                    if( ts > lastNotification + sec15) {
+                        updateNotification();
+                        lastNotification = ts;
+                    }
 
                     addValtteriEvent((SensorEventWrapper) msg.obj);
+
                     sampler++;
                     if(sampler%1000==0){
                         //System.out.println("Sampling every 1000 sensor events: " + msg + " " + ((SensorEventWrapper)msg.obj));
@@ -254,7 +289,121 @@ public class Collect implements SensorEventListenerWrapper {
 
     }
 
+    private void createNotificationChannel() {
+        // Create the NotificationChannel, but only on API 26+ because
+        // the NotificationChannel class is new and not in the support library
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "VirtualValtteri sensors";
+            String description = "VirtualValtteri shows notification when it is collecting sensor data.";
+            /*
+            int importance = NotificationManagerCompat.IMPORTANCE_MAX;
+            channel = new NotificationChannelCompat.Builder("VirtualValtteri", importance).build();
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+            notificationManager.createNotificationChannel(channel);
 
+             */
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            channel = new NotificationChannel("VirtualValtteri", "VirtualValtteri sensors" ,importance);
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+
+
+    public void showCollectNotification(String filename){
+        createNotificationChannel();
+        // Create an explicit intent for an Activity in your app
+        Intent intent = new Intent(context, SettingsActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "VirtualValtteri")
+                .setSmallIcon(R.drawable.racinghelmet_small_notification)
+                .setContentTitle(filename)
+                .setContentText(getNotificationString())
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                .setColorized(true)
+                .setContentInfo("Info?")
+                .setLights(Color.rgb(0xff,0xda, 0xa9),200,800)
+                .setOngoing(true)
+                .setSilent(false)
+                .setTicker("ticker")
+                .setAutoCancel(false)
+                .setColor(Color.rgb(0xff,0xaa, 0x55))
+                .setOnlyAlertOnce(true)
+                // Set the intent that will fire when the user taps the notification
+                .setContentIntent(pendingIntent);
+
+        notification = builder.build();
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+
+        // notificationId is a unique int for each notification that you must define
+        notificationManager.getNotificationChannel("VirtualValtteri");
+        notificationManager.notify(77, notification);
+    }
+    public String getNotificationString(){
+        long size=-1;
+        Path path = Paths.get(fullPath);
+        try {
+            size = Files.size(path);
+        }
+        catch(IOException e){
+            System.out.println(e);
+            e.printStackTrace();
+        }
+        Date now = new Date();
+        double timeDiff = (now.getTime() - startTimeObj.getTime()) / 1000.0;
+        int minutes = ((int)timeDiff / 60);
+        int seconds = ((int)timeDiff) % 60;
+
+        StringBuilder sb = new StringBuilder();
+        Formatter formatter = new Formatter(sb, Locale.getDefault());
+
+        String content = formatter.format("%dm%ds %d events %f MB", minutes, seconds, data.size(), size/1024.0/1024.0).toString();
+        return content;
+    }
+    public void updateNotification(){
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        //NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if(notification!=null){
+            //notificationManager.notify(77, notification);
+            Intent intent = new Intent(context, SettingsActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "VirtualValtteri")
+                    .setSmallIcon(R.drawable.racinghelmet_small_notification)
+                    .setContentTitle(filename)
+                    .setContentText(getNotificationString())
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                    .setColorized(true)
+                    .setContentInfo("Info?")
+                    .setLights(Color.rgb(0xff,0xda, 0xa9),200,800)
+                    .setOngoing(true)
+                    .setSilent(false)
+                    .setTicker("ticker")
+                    .setAutoCancel(false)
+                    .setColor(Color.rgb(0xff,0xaa, 0x55))
+                    .setOnlyAlertOnce(true)
+                    // Set the intent that will fire when the user taps the notification
+                    .setContentIntent(pendingIntent);
+
+            notification = builder.build();
+            notificationManager.notify(77, notification);
+
+        }
+        else {
+            System.out.println("notification was null");
+        }
+    }
+
+    public void stopNotification(){
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        notificationManager.cancel(77);
+    }
     public SensorWrapper getSensor(int type){
         return sensorManager.getDefaultSensor(type);
     }

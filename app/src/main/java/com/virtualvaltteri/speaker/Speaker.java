@@ -3,6 +3,7 @@ package com.virtualvaltteri.speaker;
 import com.virtualvaltteri.vmkarting.DriverState;
 
 public class Speaker {
+    final public String type = "Speaker";
     protected String pos(String position){
         switch (position){
             case "1":

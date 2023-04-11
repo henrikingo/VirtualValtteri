@@ -19,8 +19,15 @@ public class WebSocketManager {
         this.activity = activity;
     }
     public WebSocketClient connect() {
-        mWebSocketClient = new MyWebSocketClient(serverUri, activity);
-        mWebSocketClient.connect();
+        if (mWebSocketClient==null || mWebSocketClient.isClosed() || mWebSocketClient.isClosing()){
+            if(mWebSocketClient!=null)
+                mWebSocketClient.isClosedForever=true;
+            mWebSocketClient = null;
+        }
+        if (mWebSocketClient==null || mWebSocketClient.isClosedForever){
+            mWebSocketClient = new MyWebSocketClient(serverUri, activity);
+            mWebSocketClient.connect();
+        }
         return mWebSocketClient;
     }
 
@@ -55,7 +62,9 @@ public class WebSocketManager {
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
-                    mWebSocketClient.isClosedForever = true;
+                    if (mWebSocketClient != null){
+                        mWebSocketClient.isClosedForever = true;
+                    }
 
                     mWebSocketClient = new MyWebSocketClient(serverUri, activity);
                     mWebSocketClient.connect();

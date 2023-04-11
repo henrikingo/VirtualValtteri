@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 1) {
             if (resultCode == Activity.RESULT_OK) {
                 String speaker = data.getStringExtra("settings_speaker");
-                if(speaker!=null){
+                if(speaker!=null && !speaker.equals(handler.speaker.type)){
                     switch (speaker) {
                         case "Speaker":
                             System.out.println("Switch to (default) Speaker speaker mode.");
@@ -252,76 +252,6 @@ public class MainActivity extends AppCompatActivity {
     public void ttsDone() {
         mTextView = findViewById(R.id.text_view);
         tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);
-        AssetManager assetManager = getAssets();
-
-        if (testRun.startsWith("true")) {
-            System.out.println("Doing test run with test data, no network connections created.");
-            try {
-                InputStream testDataInputStream = assetManager.open("testdata.txt");
-                BufferedReader testDataReader = new BufferedReader(new InputStreamReader(testDataInputStream));
-                String line = null;
-                try {
-                    while ((line = testDataReader.readLine()) != null) {
-                        if (line.equals(""))
-                            continue;
-//                               System.out.println("first line: " + line);
-
-                        StringBuilder message = new StringBuilder();
-                        message.append(line).append("\n");
-                        while ((line = testDataReader.readLine()) != null && !line.equals("")) {
-//                                   System.out.println("multiline: " + line);
-                            message.append(line).append("\n");
-                        }
-                        Map<String,String> englishMessageMap = handler.message(message.toString());
-                        String englishMessage = englishMessageMap.get("message");
-                        if(englishMessageMap.containsKey("driverChanged"))
-                            englishMessage += "\n";
-
-                        if (!(englishMessage.equals(""))) {
-                            tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
-                            String finalEnglishMessage = englishMessage;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mTextView.setText(finalEnglishMessage);
-                                    if(englishMessageMap.containsKey("s1"))
-                                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s1")));
-                                    if(englishMessageMap.containsKey("s2"))
-                                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s2")));
-                                    if(englishMessageMap.containsKey("lap"))
-                                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("lap")));
-                                    if(englishMessageMap.containsKey("position"))
-                                        mTextViewPosition.setText("P"+englishMessageMap.get("position"));
-                                    if(englishMessageMap.containsKey("carNr"))
-                                        mTextViewCarNr.setText(englishMessageMap.get("carNr"));
-                                    if(englishMessageMap.containsKey("time_meta")){
-                                        if(englishMessageMap.get("time_meta").equals("improved"))
-                                            setColorAll(getColor(R.color.timeImproved));
-                                        else if(englishMessageMap.get("time_meta").equals("individual best"))
-                                            setColorAll(getColor(R.color.timeIndividualBest));
-                                        else if(englishMessageMap.get("time_meta").equals("best"))
-                                            setColorAll(getColor(R.color.timeBest));
-                                        else
-                                            setColorAll(getColor(R.color.timeNormal));
-                                    }
-                                }
-                            });
-
-                        }
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                } finally {
-                    try {
-                        testDataInputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         // Connect to WebSocket server
         if (websocketUrl != null) {
             connectWebsocket();
@@ -337,14 +267,16 @@ public class MainActivity extends AppCompatActivity {
         mTextViewLarge.setTextColor(color);
     }
     public void connectWebsocket(){
-        try {
-            this.mWebSocket = new WebSocketManager(websocketUrl, this);
-            this.mWebSocket.connect();
+        if(this.mWebSocket == null){
+            try {
+                this.mWebSocket = new WebSocketManager(websocketUrl, this);
+            }
+            catch(URISyntaxException ex) {
+                System.err.println("Server URI is wrongly formatted: " + ex);
+                System.err.println("Can't really do much without the websocket. Giving up. ");
+            }
         }
-        catch(URISyntaxException ex) {
-            System.err.println("Server URI is wrongly formatted: " + ex);
-            System.err.println("Can't really do much without the websocket. Giving up. ");
-        }
+        this.mWebSocket.connect();
     }
 
     @Override
