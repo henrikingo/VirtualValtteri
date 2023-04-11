@@ -217,6 +217,7 @@ public class Collect implements SensorEventListenerWrapper {
                     if( ts > lastNotification + sec15) {
                         updateNotification();
                         lastNotification = ts;
+                        System.out.println(ts-lastNotification-sec15);
                     }
 
                     addValtteriEvent((SensorEventWrapper) msg.obj);
@@ -361,7 +362,7 @@ public class Collect implements SensorEventListenerWrapper {
         StringBuilder sb = new StringBuilder();
         Formatter formatter = new Formatter(sb, Locale.getDefault());
 
-        String content = formatter.format("%dm%ds %d events %f MB", minutes, seconds, data.size(), size/1024.0/1024.0).toString();
+        String content = formatter.format("%dm%ds %d events %.2f MB", minutes, seconds, data.size(), size/1024.0/1024.0).toString();
         return content;
     }
     public void updateNotification(){
