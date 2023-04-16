@@ -304,7 +304,6 @@ public class Collect implements SensorEventListenerWrapper {
         }
 
     }
-
     private void createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
         // the NotificationChannel class is new and not in the support library
@@ -325,6 +324,7 @@ public class Collect implements SensorEventListenerWrapper {
         }
     }
 
+    NotificationCompat.Builder builder;
 
 
     public void showCollectNotification(String filename){
@@ -334,8 +334,8 @@ public class Collect implements SensorEventListenerWrapper {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "VirtualValtteri")
-                .setSmallIcon(R.drawable.racinghelmet_small_notification)
+        builder = new NotificationCompat.Builder(context, "VirtualValtteri");
+        builder.setSmallIcon(R.drawable.racinghelmet_small_notification)
                 .setContentTitle(filename)
                 .setContentText(getNotificationString())
                 .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -385,28 +385,7 @@ public class Collect implements SensorEventListenerWrapper {
         //NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if(notification!=null){
             //notificationManager.notify(77, notification);
-            Intent intent = new Intent(context, SettingsActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
-
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "VirtualValtteri")
-                    .setSmallIcon(R.drawable.racinghelmet_small_notification)
-                    .setContentTitle(filename)
-                    .setContentText(getNotificationString())
-                    .setPriority(NotificationCompat.PRIORITY_MAX)
-                    .setCategory(NotificationCompat.CATEGORY_PROGRESS)
-                    .setColorized(true)
-                    .setContentInfo("Info?")
-                    .setLights(Color.rgb(0xff,0xda, 0xa9),200,800)
-                    .setOngoing(true)
-                    .setSilent(false)
-                    .setTicker("ticker")
-                    .setAutoCancel(false)
-                    .setColor(Color.rgb(0xff,0xaa, 0x55))
-                    .setOnlyAlertOnce(true)
-                    // Set the intent that will fire when the user taps the notification
-                    .setContentIntent(pendingIntent);
-
+            builder.setContentText(getNotificationString());
             notification = builder.build();
             notificationManager.notify(77, notification);
 
