@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.format.DateFormat;
+import android.view.View;
 
 import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationCompat;
@@ -40,6 +41,8 @@ import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Collect implements SensorEventListenerWrapper {
@@ -148,10 +151,12 @@ public class Collect implements SensorEventListenerWrapper {
         sensorManager.registerListener(this, rotation, samplingPeriod);
         sensorManager.registerListener(this, race, samplingPeriod);
         started = true;
+        startNotificationTimer();
         showCollectNotification(filename);
         return true;
     }
     public boolean stopSensors() {
+        stopNotificationTimer();
         System.out.println("Stop all sensors (whether they were on or not...)");
         sensorManager.flush(this);
         sensorManager.unregisterListener(this);
@@ -205,22 +210,12 @@ public class Collect implements SensorEventListenerWrapper {
     class LooperThread extends Thread {
         public Handler mHandler;
         private int sampler=0;
-        public long lastNotification=-1;
-        final public long sec15 = 15*1000*1000*1000;
         public void run() {
             Looper.prepare();
 
             mHandler = new Handler(Looper.myLooper()) {
                 public void handleMessage(Message msg) {
-                    long ts = ((SensorEventWrapper)msg.obj).timestamp;
-
-                    if( ts > lastNotification + sec15) {
-                        updateNotification();
-                        lastNotification = ts;
-                    }
-
                     addValtteriEvent((SensorEventWrapper) msg.obj);
-
                     sampler++;
                     if(sampler%1000==0){
                         //System.out.println("Sampling every 1000 sensor events: " + msg + " " + ((SensorEventWrapper)msg.obj));
@@ -233,8 +228,29 @@ public class Collect implements SensorEventListenerWrapper {
         }
     }
 
+    Timer timer;
+    TimerTask timerTask;
+    final Handler timerHandler = new Handler();
+    public void startNotificationTimer() {
+        timer = new Timer();
+        initializeTimerTask();
+        //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
+        timer.schedule(timerTask, 5000, 10000); //
+    }
 
-
+    public void stopNotificationTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+    public void initializeTimerTask() {
+        timerTask = new TimerTask() {
+            public void run() {
+                updateNotification();
+            }
+        };
+    }
     public void addValtteriEvent(SensorEventWrapper event) {
         if (event.values == null) {
             System.out.println("What kind of event has no values? " + event.sensor.getStringType());
