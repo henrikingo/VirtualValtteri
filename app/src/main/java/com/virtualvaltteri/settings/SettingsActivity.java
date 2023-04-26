@@ -18,6 +18,7 @@ import androidx.preference.PreferenceManager;
 
 import com.virtualvaltteri.MainActivity;
 import com.virtualvaltteri.R;
+import com.virtualvaltteri.sensors.CollectFg;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+
         // Follow drivers
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
@@ -79,6 +81,12 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                     returnIntent.putCharSequenceArrayListExtra("settings_drivers",csList);
                     setResult(Activity.RESULT_OK,returnIntent);
+                    return true;
+                }
+                if(preference.getKey().equals("collect_sensor_data_key")){
+                    CollectFg collect = new CollectFg(getApplicationContext());
+                    // This ensures that if you flip on sensors, the foreground notification will appear in 10 seconds.
+                    collect.startServiceStandby();
                     return true;
                 }
                 return true;

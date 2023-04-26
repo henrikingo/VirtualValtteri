@@ -42,7 +42,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import com.virtualvaltteri.sensors.Collect;
+import com.virtualvaltteri.sensors.CollectFg;
 import com.virtualvaltteri.speaker.VeryShort;
 import com.virtualvaltteri.speaker.Quiet;
 import com.virtualvaltteri.vmkarting.MessageHandler;
@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
     Set<String> followDriverIds = new HashSet<String>(Collections.emptyList());
     private final String initialMessage = "Valtteri. It's James.\n";
 
-    private Collect collect;
+    private CollectFg collect;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,7 +112,8 @@ public class MainActivity extends AppCompatActivity {
 
         if(collect==null){
             System.out.println("Create Collect object to manage sensors");
-            collect = new Collect(this);
+            collect = new CollectFg(this);
+            collect.startServiceStandby();
         }
 
         handler = new MessageHandler(this.followDriverNames, collect);
@@ -283,8 +284,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        if(collect!=null)
-            collect.stopSensors();
+        //if(collect!=null)
+        //    collect.stopService();
 
         // Close WebSocket connection
         if (mWebSocket != null) {

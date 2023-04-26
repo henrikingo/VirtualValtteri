@@ -1,9 +1,14 @@
 package com.virtualvaltteri.sensors;
 
+import static android.content.Context.MODE_PRIVATE;
+
+import static com.virtualvaltteri.MainActivity.SHARED_PREFS_MAGIC_WORD;
+
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -48,7 +53,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class Collect implements SensorEventListenerWrapper {
 //    final public int samplingPeriod = 100000;
     final public int samplingPeriod = SensorManager.SENSOR_DELAY_FASTEST;
-    private SensorManagerWrapper sensorManager;
+    private static SensorManagerWrapper sensorManager;
     private SensorWrapper earthAccel;
     private SensorWrapper rotation;
     private SensorWrapper race;
@@ -58,13 +63,15 @@ public class Collect implements SensorEventListenerWrapper {
     CSVWriter writer = null;
     String filename;
     String fullPath=null;
-    Notification notification = null;
+    public Notification notification = null;
+    public NotificationCompat.Builder builder;
     public final int csvCols=22;
     public final String[] csvColumnNames = {
             "timestamp","type","sensortype","vendor","version","x","y","z","zz","quality",
             "pad11","pad12","pad13","pad14","pad15","pad16","pad17","pad18","pad19","pad20","pad21","pad22"
     };
     NotificationChannel channel;
+    public Service service;
     Context context;
     CharSequence startTime = null;
     Date startTimeObj = null;
@@ -72,7 +79,7 @@ public class Collect implements SensorEventListenerWrapper {
     private LooperThread looper;
     private static Collect singletonInstance;
 
-    public Collect getInstance(Context context){
+    public static Collect getInstance(Context context){
         if(singletonInstance==null){
             singletonInstance = new Collect(context);
         }
@@ -95,17 +102,11 @@ public class Collect implements SensorEventListenerWrapper {
         looper = new LooperThread();
         looper.start();
 
-        SharedPreferences prefs = context.getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, Context.MODE_PRIVATE);
-        String settingMode = prefs.getString("collect_sensor_data_key", "race");
-        System.out.println("Read setting Collect.mode: " + settingMode);
-        if(settingMode.equals("on")) startSensors();
-        if(settingMode.equals("off")) stopSensors();
-
          createNotificationChannel();
     }
 
     public void raceStarted(){
-        SharedPreferences prefs = context.getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("race")){
@@ -116,7 +117,7 @@ public class Collect implements SensorEventListenerWrapper {
         }
     }
     public void raceStopped(){
-        SharedPreferences prefs = context.getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, Context.MODE_PRIVATE);
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         String settingMode = prefs.getString("collect_sensor_data_key", "race");
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("race")){
@@ -196,6 +197,35 @@ public class Collect implements SensorEventListenerWrapper {
         return started;
     }
 
+    private int idleCount=0;
+    private final int IDLE_MAX = 60;
+
+    public boolean startStopSensors(){
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        if(prefs.contains("collect_sensor_data_key")){
+            if(prefs.getString("collect_sensor_data_key", "off").equals("on") && !started){
+                startSensors();
+                idleCount=0;
+                return true;
+            }
+            if(prefs.getString("collect_sensor_data_key", "off").equals("off") && started){
+                stopSensors();
+                idleCount=0;
+                return true;
+            }
+            if(!started){
+                idleCount++;
+                if(idleCount>IDLE_MAX/2){
+                    service.stopForeground(true);
+                } else if (idleCount>IDLE_MAX) {
+                    service.stopSelf();
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public void onAccuracyChanged(SensorWrapper sensor, int accuracy){
         System.out.println(String.format("Accuracy changed. Sensor=%s accuracy=%s", sensor.getStringType(), accuracy));
@@ -248,6 +278,8 @@ public class Collect implements SensorEventListenerWrapper {
         timerTask = new TimerTask() {
             public void run() {
                 updateNotification();
+                startStopSensors();
+
             }
         };
     }
@@ -310,13 +342,7 @@ public class Collect implements SensorEventListenerWrapper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "VirtualValtteri sensors";
             String description = "VirtualValtteri shows notification when it is collecting sensor data.";
-            /*
-            int importance = NotificationManagerCompat.IMPORTANCE_MAX;
-            channel = new NotificationChannelCompat.Builder("VirtualValtteri", importance).build();
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-            notificationManager.createNotificationChannel(channel);
 
-             */
             int importance = NotificationManager.IMPORTANCE_HIGH;
             channel = new NotificationChannel("VirtualValtteri", "VirtualValtteri sensors" ,importance);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
@@ -324,17 +350,58 @@ public class Collect implements SensorEventListenerWrapper {
         }
     }
 
-    NotificationCompat.Builder builder;
 
-
-    public void showCollectNotification(String filename){
+    public void standby(Service service){
+        this.service = service;
         createNotificationChannel();
+
+        SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        String settingMode = prefs.getString("collect_sensor_data_key", "race");
+        System.out.println("Read setting Collect.mode: " + settingMode);
+        if(settingMode.equals("on")) startSensors();
+        if(settingMode.equals("off")) stopSensors();
+
+        showStandbyNotification();
+    }
+    public void showStandbyNotification(){
+        System.out.println("showStandbyNotification()");
+
+        if(builder==null)
+            builder = new NotificationCompat.Builder(context, "VirtualValtteri");
+
+        builder.setSmallIcon(R.drawable.racinghelmet_small_notification)
+                .setContentTitle("Standby...")
+                .setContentText("Sensors stopped")
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setCategory(NotificationCompat.CATEGORY_PROGRESS)
+                .setColorized(true)
+                .setContentInfo("Info?")
+                .setLights(Color.rgb(0xff,0xda, 0xa9),200,800)
+                .setOngoing(true)
+                .setSilent(false)
+                .setTicker("ticker")
+                .setAutoCancel(false)
+                .setColor(Color.rgb(0xff,0xaa, 0x55));
+
+        notification = builder.build();
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+
+        //Intent notificationIntent = new Intent(service, MainActivity.class);
+        //PendingIntent pendingIntent = PendingIntent.getActivity(service,0, notificationIntent, 0);
+        service.startForeground(77, notification);
+    }
+    public void showCollectNotification(String filename){
+        System.out.println("showCollectNotification()");
+        //createNotificationChannel();
+
         // Create an explicit intent for an Activity in your app
         Intent intent = new Intent(context, SettingsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
-        builder = new NotificationCompat.Builder(context, "VirtualValtteri");
+        if(builder==null)
+            builder = new NotificationCompat.Builder(context, "VirtualValtteri");
+
         builder.setSmallIcon(R.drawable.racinghelmet_small_notification)
                 .setContentTitle(filename)
                 .setContentText(getNotificationString())
@@ -356,8 +423,9 @@ public class Collect implements SensorEventListenerWrapper {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
         // notificationId is a unique int for each notification that you must define
-        notificationManager.getNotificationChannel("VirtualValtteri");
-        notificationManager.notify(77, notification);
+        //notificationManager.getNotificationChannel("VirtualValtteri");
+        //notificationManager.notify(77, notification);
+        service.startForeground(77, notification);
     }
     public String getNotificationString(){
         long size=-1;
@@ -384,11 +452,12 @@ public class Collect implements SensorEventListenerWrapper {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         //NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if(notification!=null){
-            //notificationManager.notify(77, notification);
-            builder.setContentText(getNotificationString());
+            builder
+                    .setContentTitle(filename)
+                    .setContentText(getNotificationString());
             notification = builder.build();
-            notificationManager.notify(77, notification);
-
+            //notificationManager.notify(77, notification);
+            service.startForeground(77, notification);
         }
         else {
             System.out.println("notification was null");
@@ -398,6 +467,7 @@ public class Collect implements SensorEventListenerWrapper {
     public void stopNotification(){
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         notificationManager.cancel(77);
+        showStandbyNotification();
     }
     public SensorWrapper getSensor(int type){
         return sensorManager.getDefaultSensor(type);
