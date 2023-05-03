@@ -56,6 +56,8 @@ public class Collect implements SensorEventListenerWrapper {
     private static SensorManagerWrapper sensorManager;
     private SensorWrapper earthAccel;
     private SensorWrapper rotation;
+    private SensorWrapper accel;
+    private SensorWrapper gyro;
     private SensorWrapper race;
 
     //public ConcurrentLinkedDeque<SensorEventWrapper> data;
@@ -92,7 +94,10 @@ public class Collect implements SensorEventListenerWrapper {
         earthAccel = sensorManager.getDefaultSensor(SensorWrapper.TYPE_EARTH_ACCELERATION);
         rotation = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         race = sensorManager.getDefaultSensor(SensorWrapper.TYPE_RACE_EVENT);
-;
+        accel = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
+        gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+
 
         for(SensorWrapper s: sensorManager.getSensorList(Sensor.TYPE_ALL)){
             System.out.println(String.format("Listing all sensors: typeString=%s type=%s vendor=%s", s.getStringType(), s.getType(), s.getVendor()));
@@ -149,6 +154,8 @@ public class Collect implements SensorEventListenerWrapper {
         }
 
         sensorManager.registerListener(this, earthAccel, samplingPeriod);
+        sensorManager.registerListener(this, accel, samplingPeriod);
+        sensorManager.registerListener(this, gyro, samplingPeriod);
         sensorManager.registerListener(this, rotation, samplingPeriod);
         sensorManager.registerListener(this, race, samplingPeriod);
         started = true;
