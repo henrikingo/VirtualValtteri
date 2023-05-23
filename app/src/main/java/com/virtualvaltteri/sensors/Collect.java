@@ -18,6 +18,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PowerManager;
 import android.text.format.DateFormat;
 
 import androidx.core.app.NotificationCompat;
@@ -64,6 +65,7 @@ public class Collect implements SensorEventListenerWrapper {
             "timestamp","type","sensortype","vendor","version","x","y","z","zz","quality",
             "pad11","pad12","pad13","pad14","pad15","pad16","pad17","pad18","pad19","pad20","pad21","pad22"
     };
+    private PowerManager.WakeLock wakeLock;
     NotificationChannel channel;
     public Service service;
     Context context;
@@ -96,7 +98,8 @@ public class Collect implements SensorEventListenerWrapper {
         }
 
 
-
+        PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VirtualValtteri::SensorsStarted");
 
         // Make sure looper is setup before we unleash the sensor event listeners
         looper = new LooperThread();
@@ -157,6 +160,8 @@ public class Collect implements SensorEventListenerWrapper {
         started = true;
         startNotificationTimer();
         showCollectNotification(filename);
+
+        wakeLock.acquire();
         return true;
     }
     public boolean stopSensors() {
@@ -164,6 +169,9 @@ public class Collect implements SensorEventListenerWrapper {
         System.out.println("Stop all sensors (whether they were on or not...)");
         sensorManager.flush(this);
         sensorManager.unregisterListener(this);
+        if(started){
+            wakeLock.release();
+        }
         started=false;
         sensorManager.flush(this);
 
