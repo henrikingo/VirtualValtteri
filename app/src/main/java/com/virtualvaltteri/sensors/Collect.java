@@ -367,6 +367,14 @@ public class Collect implements SensorEventListenerWrapper {
         System.out.println("Read setting Collect.mode: " + settingMode);
         if(settingMode.equals("on")) startSensors();
         if(settingMode.equals("off")) stopSensors();
+        if(settingMode.equals("race")){
+            if(started){
+                startSensors();
+            }
+            else {
+                stopSensors();
+            }
+        }
 
         createStandbyNotification();
     }
