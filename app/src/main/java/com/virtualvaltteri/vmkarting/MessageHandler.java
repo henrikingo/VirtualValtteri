@@ -1,6 +1,5 @@
 package com.virtualvaltteri.vmkarting;
 
-import com.virtualvaltteri.sensors.CollectFg;
 import com.virtualvaltteri.sensors.RaceEventSensor;
 import com.virtualvaltteri.sensors.SensorWrapper;
 import com.virtualvaltteri.speaker.Speaker;

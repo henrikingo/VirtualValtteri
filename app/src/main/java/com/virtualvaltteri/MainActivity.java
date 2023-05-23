@@ -264,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void processMesssage(Map<String,String> englishMessageMap) {
         String englishMessage = englishMessageMap.get("message");
-        System.out.println("processMessage " + englishMessage);
+        System.out.println("processMessage " + englishMessageMap);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

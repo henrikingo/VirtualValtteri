@@ -23,7 +23,6 @@ import android.text.format.DateFormat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.google.firebase.perf.metrics.AddTrace;
 import com.opencsv.CSVWriter;
 import com.virtualvaltteri.R;
 import com.virtualvaltteri.settings.SettingsActivity;
@@ -177,6 +176,7 @@ public class Collect implements SensorEventListenerWrapper {
             if(!e.getMessage().equals("Stream closed"))
                 e.printStackTrace();
         }
+        /*
         if(started){
             String fileName = "VirtualValtteri.vmkarting." + startTime + ".java.ArrayList.serialized";
             try {
@@ -196,6 +196,7 @@ public class Collect implements SensorEventListenerWrapper {
                 started = false;
             }
         }
+        */
         started = false;
         stopNotification();
         return started;
@@ -235,7 +236,6 @@ public class Collect implements SensorEventListenerWrapper {
         System.out.println(String.format("Accuracy changed. Sensor=%s accuracy=%s", sensor.getStringType(), accuracy));
     }
 
-    @AddTrace(name="SensorEventWrapper")
     public void onSensorChanged(SensorEventWrapper event) {
         Message msg = new Message();
         msg.obj = event;
@@ -290,7 +290,6 @@ public class Collect implements SensorEventListenerWrapper {
         };
     }
 
-    @AddTrace(name = "ValtteriEvent")
     public void addValtteriEvent(SensorEventWrapper event) {
         if (event.values == null) {
             System.out.println("What kind of event has no values? " + event.sensor.getStringType());

@@ -39,6 +39,7 @@ dependencies {
     implementation 'com.opencsv:opencsv:5.5.2'
     implementation 'com.github.KalebKE:FSensor:v2.2'
     implementation 'com.google.android.gms:play-services-location:21.0.1'
+    //implementation 'com.j256.simplemetrics:simplemetrics:1.10'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
