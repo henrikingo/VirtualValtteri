@@ -10,13 +10,13 @@ import java.util.TimerTask;
 public class WebSocketManager {
     private static MyWebSocketClient mWebSocketClient;
     private URI serverUri;
-    private MainActivity activity;
+    private final VirtualValtteriService vvs;
     private boolean isRestarting = false;
 
-    public WebSocketManager(String websocketUrl, MainActivity activity)
+    public WebSocketManager(String websocketUrl, VirtualValtteriService vvs)
             throws URISyntaxException {
         this.serverUri = new URI(websocketUrl);
-        this.activity = activity;
+        this.vvs = vvs;
     }
     public WebSocketClient connect() {
         if (mWebSocketClient==null || mWebSocketClient.isClosed() || mWebSocketClient.isClosing()){
@@ -25,19 +25,19 @@ public class WebSocketManager {
             mWebSocketClient = null;
         }
         if (mWebSocketClient==null || mWebSocketClient.isClosedForever){
-            mWebSocketClient = new MyWebSocketClient(serverUri, activity);
+            mWebSocketClient = new MyWebSocketClient(serverUri, vvs);
             mWebSocketClient.connect();
         }
         return mWebSocketClient;
     }
 
     public class MyWebSocketClient extends  WebSocketClient {
-        MainActivity activity;
+        VirtualValtteriService vvs;
         URI serverUri;
         public boolean isClosedForever = false;
-        MyWebSocketClient(URI serverUri, MainActivity activity) {
+        MyWebSocketClient(URI serverUri, VirtualValtteriService vvs) {
             super(serverUri);
-            this.activity = activity;
+            this.vvs = vvs;
             this.serverUri = serverUri;
         }
 
@@ -49,7 +49,7 @@ public class WebSocketManager {
             if(isClosedForever) return;
 
             // Called when a message is received from the server
-            activity.processMesssage(message);
+            vvs.processMessage(message);
         }
         public void  onClose(int code, String reason, boolean remote){
             System.out.println("Websocket disconnected - scheduling a re-connect in a sec...");
@@ -66,7 +66,7 @@ public class WebSocketManager {
                         mWebSocketClient.isClosedForever = true;
                     }
 
-                    mWebSocketClient = new MyWebSocketClient(serverUri, activity);
+                    mWebSocketClient = new MyWebSocketClient(serverUri, vvs);
                     mWebSocketClient.connect();
                     isRestarting = false;
                 }
@@ -90,7 +90,7 @@ public class WebSocketManager {
                     mWebSocketClient.isClosedForever = true;
                     mWebSocketClient.close();
 
-                    mWebSocketClient = new MyWebSocketClient(serverUri, activity);
+                    mWebSocketClient = new MyWebSocketClient(serverUri, vvs);
                     mWebSocketClient.connect();
                     isRestarting = false;
                 }

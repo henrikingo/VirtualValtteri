@@ -1,14 +1,17 @@
 package com.virtualvaltteri;
 
 import android.Manifest;
-import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.speech.tts.TextToSpeech;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -24,48 +27,26 @@ import android.net.Uri;
 import android.provider.Settings;
 
 import com.virtualvaltteri.settings.SettingsActivity;
-import com.virtualvaltteri.speaker.Speaker;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
+import java.util.ListIterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.BlockingQueue;
 
 import com.virtualvaltteri.sensors.CollectFg;
-import com.virtualvaltteri.speaker.VeryShort;
-import com.virtualvaltteri.speaker.Quiet;
-import com.virtualvaltteri.vmkarting.MessageHandler;
 
 public class MainActivity extends AppCompatActivity {
     public final static String SHARED_PREFS_MAGIC_WORD = "com.virtualvaltteri_preferences";
     // Get WebSocket URL from properties file
-    String websocketUrl = null;
-    String testRun = "false";
-    float ttsPitch = 1.0F;
-    String ttsVoice = "default";
-    private WebSocketManager mWebSocket;
     private TextView mTextView;
     private TextView mTextViewLarge;
     private TextView mTextViewCarNr;
     private TextView mTextViewPosition;
-    private MessageHandler handler;
-    private TextToSpeech tts;
-    public Set<String> followDriverNames;
-    Set<String> followDriverIds = new HashSet<String>(Collections.emptyList());
-    private final String initialMessage = "Valtteri. It's James.\n";
-
     private CollectFg collect;
+    private String englishMessage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,62 +69,20 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 // opening a new intent to open settings activity.
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                // Send list of drivers in this race...
-                SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
-                ArrayList<CharSequence> samesamebutdifferent = new ArrayList<>();
-                for(String s: sortedDrivers){
-                    samesamebutdifferent.add((CharSequence) s);
-                }
-                //samesamebutdifferent.add("Kekekekek");
-                //samesamebutdifferent.add("Rosberg");
-                System.out.println("Putting driverlist in the intent sending to settings: " + samesamebutdifferent);
-                intent.putCharSequenceArrayListExtra("sortedDrivers", samesamebutdifferent);
-                //  TODO: Fix deprecated
-                startActivityForResult(intent, 1);
+                startActivity(intent);
             }
         });
-        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
-        followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
-        System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
-        followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
-        String speaker = prefs.getString("speaker_key", null);
 
         setHintVisibility();
 
         if(collect==null){
             System.out.println("Create Collect object to manage sensors");
-            collect = new CollectFg(this);
+            collect = new CollectFg(getApplicationContext());
             collect.startServiceStandby();
         }
 
-        handler = new MessageHandler(this.followDriverNames, collect);
-        if(speaker!=null) {
-            switch (speaker) {
-                case "Speaker":
-                    System.out.println("Switch to (default) Speaker speaker mode.");
-                    handler.speaker = new Speaker();
-                    break;
-                case "VeryShort":
-                    System.out.println("Switch to VeryShort speaker mode.");
-                    handler.speaker = new VeryShort();
-                    break;
-                case "Quiet":
-                    System.out.println("Switch to Quiet speaker mode.");
-                    handler.speaker = new Quiet();
-                    break;
-            }
-        }
-
-
-        websocketUrl = getString(R.string.url);
-        testRun = getString(R.string.testrun);
-
-        ttsPitch = Float.parseFloat(getString(R.string.ttspitch));
-        ttsVoice = getString(R.string.ttsvoice);
-
         // This is the main audio stream managed by your hardware up-down key
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
-
 
         // Run also when in background
         Intent intent = new Intent();
@@ -170,18 +109,6 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
         }
 
-        float finalTtsPitch = ttsPitch;
-        tts = new TextToSpeech(getApplicationContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    tts.setLanguage(Locale.UK);
-                    tts.setPitch(finalTtsPitch);
-                    //tts.setVoice(new Voice(...)); // https://developer.android.com/reference/android/speech/tts/Voice
-                    ttsDone();
-                }
-            }
-        });
     }
 
     protected String cutDecimal(String d){
@@ -194,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
     private void setHintVisibility(){
         SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         TextView mHint = (TextView)findViewById(R.id.idTextHint);
+        Set<String> followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
+
         if(prefs.contains("seen_hint") ) {
             mHint.setVisibility(View.INVISIBLE);
         } else if ( followDriverNames.isEmpty() && (prefs.getString("writein_driver_name_key", "")).equals("")) {
@@ -208,55 +137,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         System.out.println("MainActivity.onActivityResult() " +requestCode + " " + resultCode + " " + data);
-        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
-        if (requestCode == 1) {
-            if (resultCode == Activity.RESULT_OK) {
-                String speaker = data.getStringExtra("settings_speaker");
-                if(speaker!=null && !speaker.equals(handler.speaker.type)){
-                    switch (speaker) {
-                        case "Speaker":
-                            System.out.println("Switch to (default) Speaker speaker mode.");
-                            handler.speaker = new Speaker();
-                            break;
-                        case "VeryShort":
-                            System.out.println("Switch to VeryShort speaker mode.");
-                            handler.speaker = new VeryShort();
-                            break;
-                        case "Quiet":
-                            System.out.println("Switch to Quiet speaker mode.");
-                            handler.speaker = new Quiet();
-                            break;
-                    }
-                }
-                followDriverNames.clear();
-                ArrayList<CharSequence> driversCS = data.getCharSequenceArrayListExtra("settings_drivers");
-                if(driversCS!=null && driversCS.size()>0){
-                    for(CharSequence cs: driversCS){
-                        followDriverNames.add((String) cs);
-                    }
-                    System.out.println("onActivityResult() followDriverNames" + followDriverNames);
-                }
-            }
-            followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
-            System.out.println("OnActivityResult: Using drivers from from shared preferences storage: " + followDriverIds);
-        }
-        if(prefs.contains("collect_sensor_data_key")){
-            if(prefs.getString("collect_sensor_data_key", "off").equals("on")){
-                collect.startSensors();
-            }
-            if(prefs.getString("collect_sensor_data_key", "off").equals("off")){
-                collect.stopSensors();
-            }
-        }
+        System.out.println("Just signal VirtualValtteriService to applyPreferences()");
+        collect.applyPreferences();
         setHintVisibility();
-    }
-    public void ttsDone() {
-        mTextView = findViewById(R.id.text_view);
-        tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);
-        // Connect to WebSocket server
-        if (websocketUrl != null) {
-            connectWebsocket();
-        }
     }
     private void setColorAll(int color){
         if(mTextViewPosition==null)
@@ -267,18 +150,6 @@ public class MainActivity extends AppCompatActivity {
         mTextViewCarNr.setTextColor(color);
         mTextViewLarge.setTextColor(color);
     }
-    public void connectWebsocket(){
-        if(this.mWebSocket == null){
-            try {
-                this.mWebSocket = new WebSocketManager(websocketUrl, this);
-            }
-            catch(URISyntaxException ex) {
-                System.err.println("Server URI is wrongly formatted: " + ex);
-                System.err.println("Can't really do much without the websocket. Giving up. ");
-            }
-        }
-        this.mWebSocket.connect();
-    }
 
     @Override
     protected void onDestroy() {
@@ -287,24 +158,113 @@ public class MainActivity extends AppCompatActivity {
         //if(collect!=null)
         //    collect.stopService();
 
-        // Close WebSocket connection
-        if (mWebSocket != null) {
-            mWebSocket.close();
-            mWebSocket = null;
-        }
-        if(tts !=null){
-            tts.stop();
-            tts.shutdown();
+    }
+
+    private void dispatchBundleCommands(Intent intent) {
+        String type = intent.getStringExtra("type");
+        String doWhat = intent.getStringExtra("do");
+        System.out.println("type: " + type + "    do:" + doWhat);
+
+        if(type.equals("com.virtualvaltteri.processMessage")) {
+            ArrayList<String> keys = intent.getStringArrayListExtra("keys");
+            ArrayList<String> values = intent.getStringArrayListExtra("values");
+            ListIterator<String> valuesIterator = values.listIterator();
+
+            Map<String, String> englishMessageMap = new HashMap<>();
+
+
+            for (String k : keys) {
+                String v = valuesIterator.next();
+                englishMessageMap.put(k, v);
+            }
+            for (int i = 0; i < keys.size(); i++) {
+                values.add(englishMessageMap.get(keys.get(i)));
+            }
+            processMesssage(englishMessageMap);
         }
     }
 
-    public void processMesssage(String message) {
-        Map<String,String> englishMessageMap = handler.message(message);
-        String englishMessage = englishMessageMap.get("message");
-        String messageType = englishMessageMap.get("type");
-        if(! (englishMessage.equals(""))) {
-            tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
+    private VirtualValtteriService vvs;
+    boolean bound=false;
+    BlockingQueue<Map<String,String>> vvsQueue;
+    MainLooperThread mainLooper;
 
+
+    class MainLooperThread extends Thread {
+        public Handler mHandler;
+        public void run() {
+            Looper.prepare();
+
+            mHandler = new Handler(Looper.myLooper()) {
+                public void handleMessage(Message msg) {
+                    Map<String,String> englishMessageMap = (Map<String, String>) msg.obj;
+                    processMesssage(englishMessageMap);
+                }
+            };
+            vvs.subscribe(mainLooper.mHandler);
+            while(vvs.getPastMessages().size()>0){
+                Map<String,String> e = vvs.getPastMessages().remove(0);
+                processMesssage(e);
+            }
+
+            Looper.loop();
+        }
+    }
+
+    private void queueLoop(){
+        System.out.println("queueLoop()");
+        // Make sure looper is setup before we unleash the sensor event listeners
+        mainLooper = new MainLooperThread();
+        mainLooper.start();
+    }
+    /** Defines callbacks for service binding, passed to bindService(). */
+    private ServiceConnection vvsCallbacks = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            VirtualValtteriService.VirtualValtteriBinder binder = (VirtualValtteriService.VirtualValtteriBinder) service;
+            vvs = binder.getService();
+            bound = true;
+            //vvsQueue =vvs.getQueue();
+
+            System.out.println("VVS Bound");
+            queueLoop();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            vvsQueue=null;
+            bound = false;
+            System.out.println("VVS Disconnected");
+        }
+    };
+
+    protected void onResume (){
+        super.onResume();
+        //refreshEverything();
+        Intent intent = new Intent(this, VirtualValtteriService.class);
+        bindService(intent, vvsCallbacks, Context.BIND_AUTO_CREATE);
+
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, VirtualValtteriService.class);
+        bindService(intent, vvsCallbacks, Context.BIND_AUTO_CREATE);
+    }
+
+    protected void onPause() {
+
+        super.onPause();
+        if(vvs!=null) vvs.unsubscribe(mainLooper.mHandler);
+        unbindService(vvsCallbacks);
+    }
+
+    public void processMesssage(Map<String,String> englishMessageMap) {
+        String englishMessage = englishMessageMap.get("message");
+        System.out.println("processMessage " + englishMessage);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -340,4 +300,3 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
-}

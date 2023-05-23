@@ -30,10 +30,10 @@ public class MessageHandler {
     public Set<String> followDriverNames;
     private String sessionType = "Session";
     private String latestDriver = "";
-    private CollectFg collect;
+    private Collect collect;
     private RaceEventSensor raceEventSensor;
 
-    public MessageHandler(Set<String> followDriverNames, CollectFg collect){
+    public MessageHandler(Set<String> followDriverNames, Collect collect){
         driverLookup = new HashMap<String, DriverState>();
         driverIdLookup = new HashMap<String, String>();
         this.followDriverNames = followDriverNames;

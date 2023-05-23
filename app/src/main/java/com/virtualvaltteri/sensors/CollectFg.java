@@ -59,6 +59,13 @@ public class CollectFg {
         serviceIntent.putExtra("do", "stop");
     }
 
+    public void applyPreferences(){
+        Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
+        serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.preferences");
+        serviceIntent.putExtra("do", "apply");
+    }
+
+
     public SensorWrapper getSensor(int type){
         return collect.getSensor(type);
     }

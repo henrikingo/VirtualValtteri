@@ -31,6 +31,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private ArrayList<CharSequence> sortedDriversFromIntent;
     public CharSequence[] sortedDriversArray;
+    public SortedSet<String> sortedDrivers2 = new ConcurrentSkipListSet<>();
     public Intent returnIntent;
     static SettingsFragment mySettingsFragment;
     Preference.OnPreferenceChangeListener prefChanged;
@@ -66,11 +67,6 @@ public class SettingsActivity extends AppCompatActivity {
         prefChanged = new Preference.OnPreferenceChangeListener() {
             public boolean onPreferenceChange(Preference preference, Object value) {
                 System.out.println("prefChanged: " + preference.getKey() + " = " + value);
-                if(preference.getKey().equals("speaker_key")){
-                    returnIntent.putExtra("settings_speaker",value.toString());
-                    setResult(Activity.RESULT_OK,returnIntent);
-                    return true;
-                }
                 if(preference.getKey().equals("drivers_key")){
 
                     ArrayList<CharSequence> csList = new ArrayList<>(Collections.emptyList());
@@ -95,8 +91,9 @@ public class SettingsActivity extends AppCompatActivity {
 
 
         SharedPreferences p = getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        this.sortedDrivers2 = new ConcurrentSkipListSet<>(p.getStringSet("sorted_drivers_key", new HashSet<>()));
         if(mySettingsFragment==null) {
-            mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray);
+            mySettingsFragment = new SettingsFragment(prefChanged, sortedDriversArray, sortedDrivers2);
         }
         FrameLayout v = findViewById(R.id.settingsLayout);
         System.out.println(v.getChildCount());

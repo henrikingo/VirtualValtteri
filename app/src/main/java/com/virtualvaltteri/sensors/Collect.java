@@ -107,6 +107,9 @@ public class Collect implements SensorEventListenerWrapper {
         looper = new LooperThread();
         looper.start();
 
+        // This became some kind of main event loop when we moved into being a service... oops \o/
+        startNotificationTimer();
+
          createNotificationChannel();
     }
 
@@ -164,7 +167,7 @@ public class Collect implements SensorEventListenerWrapper {
         return true;
     }
     public boolean stopSensors() {
-        stopNotificationTimer();
+        //stopNotificationTimer();
         System.out.println("Stop all sensors (whether they were on or not...)");
         sensorManager.flush(this);
         sensorManager.unregisterListener(this);
@@ -267,12 +270,13 @@ public class Collect implements SensorEventListenerWrapper {
 
     Timer timer;
     TimerTask timerTask;
-    final Handler timerHandler = new Handler();
     public void startNotificationTimer() {
-        timer = new Timer();
-        initializeTimerTask();
-        //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
-        timer.schedule(timerTask, 5000, 10000); //
+        if(timer==null){
+            timer = new Timer();
+            initializeTimerTask();
+            //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
+            timer.schedule(timerTask, 5000, 10000); //
+        }
     }
 
     public void stopNotificationTimer() {

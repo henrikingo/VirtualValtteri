@@ -3,17 +3,12 @@ package com.virtualvaltteri.settings;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.preference.EditTextPreference;
 import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
@@ -23,9 +18,7 @@ import androidx.preference.SwitchPreference;
 import com.virtualvaltteri.MainActivity;
 import com.virtualvaltteri.R;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Vector;
@@ -35,6 +28,7 @@ import java.util.regex.Pattern;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
     public CharSequence[] sortedDrivers;
+    public CharSequence[] sortedDrivers2;
     public DynamicMultiSelectListPreference driversPreference;
     public MultiSelectListPreference favoritedDriversPreference;
     Preference.OnPreferenceChangeListener prefChanged;
@@ -52,9 +46,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
 
     }
 
-    public SettingsFragment(Preference.OnPreferenceChangeListener prefChanged, CharSequence[] sortedDrivers){
+    public SettingsFragment(Preference.OnPreferenceChangeListener prefChanged, CharSequence[] sortedDrivers, SortedSet<String> sortedDrivers2){
         this.prefChanged=prefChanged;
         this.sortedDrivers=sortedDrivers;
+        this.sortedDrivers2=sortedDrivers2.toArray(new CharSequence[0]);
     }
 
 
@@ -72,8 +67,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         }
 
         Pattern pattern = Pattern.compile(matchDriver.toString(), Pattern.CASE_INSENSITIVE);
-        if(sortedDrivers!=null){
-            for(CharSequence d: sortedDrivers){
+        if(sortedDrivers2!=null){
+            for(CharSequence d: sortedDrivers2){
                 Matcher matcher = pattern.matcher(d);
                 if(matcher.find()) {
                     // Return the exact string used as the value for the driver setting
@@ -88,15 +83,21 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putCharSequenceArray("sortedDrivers",sortedDrivers);
+        outState.putCharSequenceArray("sortedDrivers2", sortedDrivers2);
     }
 
     public void restoreState(Bundle savedInstanceState){
         System.out.println(sortedDrivers);
+        System.out.println(Arrays.asList(sortedDrivers2));
         System.out.println(savedInstanceState);
         if(savedInstanceState!=null) {
             CharSequence[] newSortedDrivers = savedInstanceState.getCharSequenceArray("sortedDrivers");
             if (newSortedDrivers!=null){
                 this.sortedDrivers=newSortedDrivers;
+            }
+            CharSequence[] newSortedDrivers2 = savedInstanceState.getCharSequenceArray("sortedDrivers2");
+            if (newSortedDrivers2!=null){
+                this.sortedDrivers2=newSortedDrivers2;
             }
         }
     }
@@ -157,8 +158,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         boolean autoFavorite = ((SwitchPreference)findPreference("auto_favorite_key")).isChecked();
         // Populate with drivers from the latest race
         driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
-        driversPreference.setEntries(sortedDrivers);
-        driversPreference.setEntryValues(sortedDrivers);
+        driversPreference.setEntries(sortedDrivers2);
+        driversPreference.setEntryValues(sortedDrivers2);
         Set<String> driversNotInThisSession = driversPreference.getReducedValues(false);
         Set<String> followDriversInThisSession = driversPreference.getReducedValues(true);
         CharSequence[] allDriversInThisSession = driversPreference.getEntryValues();
