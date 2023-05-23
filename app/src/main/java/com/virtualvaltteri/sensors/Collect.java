@@ -1,7 +1,6 @@
 package com.virtualvaltteri.sensors;
 
 import static android.content.Context.MODE_PRIVATE;
-
 import static com.virtualvaltteri.MainActivity.SHARED_PREFS_MAGIC_WORD;
 
 import android.app.Notification;
@@ -20,14 +19,12 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.format.DateFormat;
-import android.view.View;
 
-import androidx.core.app.NotificationChannelCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.google.firebase.perf.metrics.AddTrace;
 import com.opencsv.CSVWriter;
-import com.virtualvaltteri.MainActivity;
 import com.virtualvaltteri.R;
 import com.virtualvaltteri.settings.SettingsActivity;
 
@@ -38,17 +35,13 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class Collect implements SensorEventListenerWrapper {
 //    final public int samplingPeriod = 100000;
@@ -103,14 +96,15 @@ public class Collect implements SensorEventListenerWrapper {
             System.out.println(String.format("Listing all sensors: typeString=%s type=%s vendor=%s", s.getStringType(), s.getType(), s.getVendor()));
         }
 
+
+
+
         // Make sure looper is setup before we unleash the sensor event listeners
         looper = new LooperThread();
         looper.start();
-
         // This became some kind of main event loop when we moved into being a service... oops \o/
         startNotificationTimer();
-
-         createNotificationChannel();
+        createNotificationChannel();
     }
 
     public void raceStarted(){
@@ -241,6 +235,7 @@ public class Collect implements SensorEventListenerWrapper {
         System.out.println(String.format("Accuracy changed. Sensor=%s accuracy=%s", sensor.getStringType(), accuracy));
     }
 
+    @AddTrace(name="SensorEventWrapper")
     public void onSensorChanged(SensorEventWrapper event) {
         Message msg = new Message();
         msg.obj = event;
@@ -288,12 +283,14 @@ public class Collect implements SensorEventListenerWrapper {
     public void initializeTimerTask() {
         timerTask = new TimerTask() {
             public void run() {
-                updateNotification();
                 startStopSensors();
+                updateNotification();
 
             }
         };
     }
+
+    @AddTrace(name = "ValtteriEvent")
     public void addValtteriEvent(SensorEventWrapper event) {
         if (event.values == null) {
             System.out.println("What kind of event has no values? " + event.sensor.getStringType());
@@ -372,10 +369,10 @@ public class Collect implements SensorEventListenerWrapper {
         if(settingMode.equals("on")) startSensors();
         if(settingMode.equals("off")) stopSensors();
 
-        showStandbyNotification();
+        createStandbyNotification();
     }
-    public void showStandbyNotification(){
-        System.out.println("showStandbyNotification()");
+    public void createStandbyNotification(){
+        System.out.println("createStandbyNotification()");
 
         if(builder==null)
             builder = new NotificationCompat.Builder(context, "VirtualValtteri");
@@ -459,7 +456,15 @@ public class Collect implements SensorEventListenerWrapper {
         String content = formatter.format("%dm%ds %d events %.2f MB", minutes, seconds, data.size(), size/1024.0/1024.0).toString();
         return content;
     }
-    public void updateNotification(){
+    public void updateNotification() {
+        if(started)
+            showStartedNotification();
+        else
+            showStandbyNotification();
+    }
+
+    private String whichNotification = null;
+    public void showStartedNotification () {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
         //NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if(notification!=null){
@@ -467,12 +472,31 @@ public class Collect implements SensorEventListenerWrapper {
                     .setContentTitle(filename)
                     .setContentText(getNotificationString());
             notification = builder.build();
-            //notificationManager.notify(77, notification);
-            service.startForeground(77, notification);
+            notificationManager.notify(77, notification);
+            //service.startForeground(77, notification);
         }
         else {
             System.out.println("notification was null");
         }
+        whichNotification="started";
+    }
+    public void showStandbyNotification () {
+        //System.out.println("showStandbyNotification()");
+        if(whichNotification=="standby") return;
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        if(notification!=null){
+            builder
+                    .setContentTitle("Standby...")
+                    .setContentText("Sensors stopped");
+            notification = builder.build();
+            notificationManager.notify(77, notification);
+            //service.startForeground(77, notification);
+        }
+        else {
+            System.out.println("notification was null");
+        }
+        whichNotification="standby";
     }
 
     public void stopNotification(){
