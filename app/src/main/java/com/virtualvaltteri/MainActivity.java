@@ -154,39 +154,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        //if(collect!=null)
-        //    collect.stopService();
-
-    }
-
-    private void dispatchBundleCommands(Intent intent) {
-        String type = intent.getStringExtra("type");
-        String doWhat = intent.getStringExtra("do");
-        System.out.println("type: " + type + "    do:" + doWhat);
-
-        if(type.equals("com.virtualvaltteri.processMessage")) {
-            ArrayList<String> keys = intent.getStringArrayListExtra("keys");
-            ArrayList<String> values = intent.getStringArrayListExtra("values");
-            ListIterator<String> valuesIterator = values.listIterator();
-
-            Map<String, String> englishMessageMap = new HashMap<>();
-
-
-            for (String k : keys) {
-                String v = valuesIterator.next();
-                englishMessageMap.put(k, v);
-            }
-            for (int i = 0; i < keys.size(); i++) {
-                values.add(englishMessageMap.get(keys.get(i)));
-            }
-            processMesssage(englishMessageMap);
-        }
     }
 
     private VirtualValtteriService vvs;
-    boolean bound=false;
-    BlockingQueue<Map<String,String>> vvsQueue;
     MainLooperThread mainLooper;
 
 
@@ -224,17 +194,12 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName className, IBinder service) {
             VirtualValtteriService.VirtualValtteriBinder binder = (VirtualValtteriService.VirtualValtteriBinder) service;
             vvs = binder.getService();
-            bound = true;
-            //vvsQueue =vvs.getQueue();
-
             System.out.println("VVS Bound");
             queueLoop();
         }
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-            vvsQueue=null;
-            bound = false;
             System.out.println("VVS Disconnected");
         }
     };
@@ -244,8 +209,6 @@ public class MainActivity extends AppCompatActivity {
         //refreshEverything();
         Intent intent = new Intent(this, VirtualValtteriService.class);
         bindService(intent, vvsCallbacks, Context.BIND_AUTO_CREATE);
-
-
     }
 
     @Override
@@ -256,7 +219,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     protected void onPause() {
-
         super.onPause();
         if(vvs!=null) vvs.unsubscribe(mainLooper.mHandler);
         unbindService(vvsCallbacks);

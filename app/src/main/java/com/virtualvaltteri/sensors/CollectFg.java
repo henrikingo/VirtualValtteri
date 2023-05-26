@@ -47,26 +47,9 @@ public class CollectFg {
         context.getApplicationContext().startForegroundService(serviceIntent);
     }
 
-    public void raceStarted(){
-        Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
-        serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.race");
-        serviceIntent.putExtra("do", "start");
-    }
-
-    public void raceStopped(){
-        Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
-        serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.race");
-        serviceIntent.putExtra("do", "stop");
-    }
-
     public void applyPreferences(){
         Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
         serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.preferences");
         serviceIntent.putExtra("do", "apply");
-    }
-
-
-    public SensorWrapper getSensor(int type){
-        return collect.getSensor(type);
     }
 }
