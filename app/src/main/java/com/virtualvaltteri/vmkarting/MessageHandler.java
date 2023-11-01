@@ -275,10 +275,9 @@ public class MessageHandler {
             }
             DriverState driver = new DriverState();
             driver.id = row.attr("data-id");
-            Elements c4 = row.select("[data-id="+driver.id+"c4]");
-            driver.carNr = c4.first().text();
-            driver.name = row.select("[data-id="+driver.id+"c5]").first().text().toLowerCase();
-            driver.rank = row.select("[data-id="+driver.id+"c3]").first().text().toLowerCase();
+            driver.carNr = row.select(".no div").first().text();
+            driver.name = row.select(".dr").first().text().toLowerCase();
+            driver.rank = row.select(".rk div").first().text().toLowerCase();
             driverIdLookup.put(driver.name, driver.id);
             driverLookup.put(driver.id, driver);
         }
