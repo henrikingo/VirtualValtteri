@@ -58,10 +58,6 @@ public class MainActivity extends AppCompatActivity {
         mTextViewCarNr = findViewById(R.id.idCarNr);
         mTextViewPosition = findViewById(R.id.idPosition);
 
-        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        // Configure the behavior of the hidden system bars.
-        windowInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
 
         Button settingsBtn = findViewById(R.id.settingsButton);
         settingsBtn.setOnClickListener(new View.OnClickListener() {
@@ -72,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
 
         setHintVisibility();
 
@@ -206,6 +203,10 @@ public class MainActivity extends AppCompatActivity {
 
     protected void onResume (){
         super.onResume();
+        WindowInsetsControllerCompat windowInsetsController = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        // Configure the behavior of the hidden system bars.
+        windowInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
         //refreshEverything();
         Intent intent = new Intent(this, VirtualValtteriService.class);
         bindService(intent, vvsCallbacks, Context.BIND_AUTO_CREATE);
