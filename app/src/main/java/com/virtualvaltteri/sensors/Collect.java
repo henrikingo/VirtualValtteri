@@ -28,10 +28,8 @@ import com.opencsv.CSVWriter;
 import com.virtualvaltteri.R;
 import com.virtualvaltteri.settings.SettingsActivity;
 
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -379,11 +377,9 @@ public class Collect implements SensorEventListenerWrapper {
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_PROGRESS)
                 .setColorized(true)
-                .setContentInfo("Info?")
                 .setLights(Color.rgb(0xff,0xda, 0xa9),200,800)
                 .setOngoing(true)
                 .setSilent(false)
-                .setTicker("ticker")
                 .setAutoCancel(false)
                 .setColor(Color.rgb(0xff,0xaa, 0x55));
 
@@ -400,7 +396,7 @@ public class Collect implements SensorEventListenerWrapper {
 
         // Create an explicit intent for an Activity in your app
         Intent intent = new Intent(context, SettingsActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+        intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT | Intent.FLAG_FROM_BACKGROUND | Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         if(builder==null)
