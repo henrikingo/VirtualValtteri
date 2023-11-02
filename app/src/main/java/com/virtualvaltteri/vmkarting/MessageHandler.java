@@ -60,6 +60,7 @@ public class MessageHandler {
                 String command = parts[0];
                 String argument = parts[1];
                 System.out.println(line);// + "\n" + command + ", " + argument + ", " + (parts.length >= 3 ? parts[2]: ""));
+                //assert this.followDriverNames.equals(collect.VVS.followDriverNames);
                 switch (command) {
                     case "init":
                         englishMessage.append(speaker.init(argument));
@@ -220,6 +221,7 @@ public class MessageHandler {
         }
     }
     private boolean followThisDriver(DriverState d){
+        Set<String> followDriverNames = this.collect.VVS.followDriverNames;
         System.out.println("Follow this driver: " + followDriverNames);
         // If no driver is specified, stay silent
         if (followDriverNames.isEmpty())

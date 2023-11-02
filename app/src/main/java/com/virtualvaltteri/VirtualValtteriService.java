@@ -88,6 +88,9 @@ public class VirtualValtteriService extends Service {
         if (this.collect.notification == null)
             this.collect.standby(this);
 
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        this.followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
+        this.collect.VVS = this;
         dispatchBundleCommands(intent);
 
         return START_REDELIVER_INTENT;
@@ -136,7 +139,7 @@ public class VirtualValtteriService extends Service {
             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
         }
 
-        SharedPreferences prefs = getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
         prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers)).commit();
 
@@ -167,7 +170,7 @@ public class VirtualValtteriService extends Service {
         //startActivity(mainIntent);
 
         String englishMessage = englishMessageMap.get("message");
-        SharedPreferences prefs = getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         String largeMessage = prefs.getString("large_message_key", "Valtteri, it's James.");
         editor.putString("english_message_ui", largeMessage + englishMessage);
@@ -188,7 +191,7 @@ public class VirtualValtteriService extends Service {
         this.mWebSocket.connect();
     }
     private void startWebsocketManager(){
-        SharedPreferences prefs = getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         String speaker = prefs.getString("speaker_key", null);
         assert this.followDriverNames != null;
         setSpeaker(prefs);
@@ -219,17 +222,19 @@ public class VirtualValtteriService extends Service {
         connectWebsocket();
     }
 
-    private void applyPreferences() {
-        SharedPreferences prefs = getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+    public void applyPreferences() {
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         collect.startStopSensors();
         setDrivers(prefs);
         if (handler==null) handler = new MessageHandler(this.followDriverNames, this.collect);
+        else handler.followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
 
         SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
         prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers));
 
 
         setSpeaker(prefs);
+        System.out.println("VVS.applyPreferences()");
     }
     private void setSpeaker(SharedPreferences prefs) {
         String speaker = prefs.getString("speaker_key", "Speaker");
@@ -254,8 +259,6 @@ public class VirtualValtteriService extends Service {
         }
     }
     private void setDrivers(SharedPreferences prefs){
-        if (followDriverNames != null) followDriverNames.clear();
-
         followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
         System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
         followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));

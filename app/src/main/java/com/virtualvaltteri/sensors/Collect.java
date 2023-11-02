@@ -26,7 +26,9 @@ import androidx.core.app.NotificationManagerCompat;
 
 import com.opencsv.CSVWriter;
 import com.virtualvaltteri.R;
+import com.virtualvaltteri.VirtualValtteriService;
 import com.virtualvaltteri.settings.SettingsActivity;
+import com.virtualvaltteri.vmkarting.MessageHandler;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -70,6 +72,7 @@ public class Collect implements SensorEventListenerWrapper {
     CharSequence startTime = null;
     Date startTimeObj = null;
     public boolean started = false;
+    public VirtualValtteriService VVS;
     private LooperThread looper;
     private static Collect singletonInstance;
 
@@ -272,7 +275,7 @@ public class Collect implements SensorEventListenerWrapper {
             public void run() {
                 startStopSensors();
                 updateNotification();
-
+                VVS.applyPreferences();
             }
         };
     }

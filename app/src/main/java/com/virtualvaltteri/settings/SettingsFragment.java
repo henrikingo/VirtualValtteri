@@ -124,7 +124,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         final Preference prefList = findPreference("speaker_key");
         prefList.setOnPreferenceChangeListener(prefChanged);
 
-        SharedPreferences prefs = getContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        SharedPreferences prefs = getActivity().getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {

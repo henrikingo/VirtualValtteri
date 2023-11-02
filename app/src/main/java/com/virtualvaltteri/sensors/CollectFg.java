@@ -48,6 +48,7 @@ public class CollectFg {
     }
 
     public void applyPreferences(){
+        System.out.println("CollectFg.applyPreferences()");
         Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
         serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.preferences");
         serviceIntent.putExtra("do", "apply");

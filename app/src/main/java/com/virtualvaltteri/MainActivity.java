@@ -212,10 +212,15 @@ public class MainActivity extends AppCompatActivity {
         // Configure the behavior of the hidden system bars.
         windowInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
-        //refreshEverything();
+        refreshEverything();
         Intent intent = new Intent(this, VirtualValtteriService.class);
         bindService(intent, vvsCallbacks, Context.BIND_AUTO_CREATE);
     }
+    private void refreshEverything()
+    {
+        onActivityResult(0,0,null);
+    }
+
 
     @Override
     protected void onStart() {
