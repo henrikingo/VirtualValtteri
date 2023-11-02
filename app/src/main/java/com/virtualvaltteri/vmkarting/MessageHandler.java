@@ -42,7 +42,7 @@ public class MessageHandler {
 
     private DriverState getDriverState(String driverId, Map<String, String> englishMessageMap) {
         DriverState d = driverLookup.get("r" + driverId);
-        if (latestDriver != null && !latestDriver.equals(d.id)) {
+        if (latestDriver != null && !latestDriver.equals(d.id) && followThisDriver(d)) {
             latestDriver = d.id;
             englishMessageMap.put("driverChanged", "true");
         }
@@ -124,10 +124,11 @@ public class MessageHandler {
                     Pattern driverAndCPattern = Pattern.compile("r(\\d+)c(\\d+)");
                     Matcher justDriverMatcher = justDriverPattern.matcher(command);
                     Matcher driverAndCMatcher = driverAndCPattern.matcher(command);
-                    //System.out.println("match: "+justDriverMatcher.matches() + " " + driverAndCMatcher.matches());
+                    System.out.println("match: "+justDriverMatcher.matches() + " " + driverAndCMatcher.matches());
                     if(justDriverMatcher.matches()){
                         String driverId = justDriverMatcher.group(1);
                         DriverState d = getDriverState(driverId, englishMessageMap);
+                        System.out.println("Driver only: " + driverId + " " + d + " " + followThisDriver(d));
                         if(argument.equals("#") && followThisDriver(d)){
                             d.rank = parts[2];
                             String newMessage = speaker.position(d.rank, d);
@@ -140,10 +141,11 @@ public class MessageHandler {
                         String c = driverAndCMatcher.group(2);
                         DriverState d = getDriverState(driverId, englishMessageMap);
 
+                        System.out.println("Driver and Time: " + driverId + " " + c + " " +argument + "    [" + d + "] " + followThisDriver(d));
                         if(argument.equals("ib") || argument.equals("in"))
                             continue;
 
-                        if(!englishMessageMap.containsKey("carNr") && d!=null)
+                        if(!englishMessageMap.containsKey("carNr") && d!=null && followThisDriver(d))
                             englishMessageMap.put("carNr", d.carNr);
 
                         if((c.equals("8")||c.equals("9")) && followThisDriver(d)){
@@ -177,7 +179,8 @@ public class MessageHandler {
                             englishMessageMap.put("carNr", d.carNr);
                             setTimeMeta(argument, d, englishMessageMap, englishMessage);
                         }
-                        if(d.rank != null && !d.rank.equals(""))
+
+                        if(d.rank != null && !d.rank.equals("") && followThisDriver(d))
                             if( !englishMessageMap.containsKey("carNr") || d.carNr.equals(englishMessageMap.get("carNr")))
                                 englishMessageMap.put("position", d.rank);
                     }
@@ -217,6 +220,7 @@ public class MessageHandler {
         }
     }
     private boolean followThisDriver(DriverState d){
+        System.out.println("Follow this driver: " + followDriverNames);
         // If no driver is specified, stay silent
         if (followDriverNames.isEmpty())
             return false;

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--<string name="url">ws://10.0.2.2:8080/</string>-->
     <string name="url">ws://www.apex-timing.com:8862/</string>
     <string name="testrun">false</string>
 

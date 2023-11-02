@@ -40,11 +40,13 @@ import com.virtualvaltteri.sensors.CollectFg;
 
 public class MainActivity extends AppCompatActivity {
     public final static String SHARED_PREFS_MAGIC_WORD = "com.virtualvaltteri_preferences";
-    // Get WebSocket URL from properties file
     private TextView mTextView;
     private TextView mTextViewLarge;
     private TextView mTextViewCarNr;
     private TextView mTextViewPosition;
+    private TextView mTextViewLarge2;
+    private TextView mTextViewCarNr2;
+    private TextView mTextViewPosition2;
     private CollectFg collect;
     private String englishMessage;
     @Override
@@ -57,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
         mTextViewLarge = findViewById(R.id.idLargeText);
         mTextViewCarNr = findViewById(R.id.idCarNr);
         mTextViewPosition = findViewById(R.id.idPosition);
+        mTextViewLarge2 = findViewById(R.id.idLargeText2);
+        mTextViewCarNr2 = findViewById(R.id.idCarNr2);
+        mTextViewPosition2 = findViewById(R.id.idPosition2);
 
 
         Button settingsBtn = findViewById(R.id.settingsButton);
@@ -120,7 +125,7 @@ public class MainActivity extends AppCompatActivity {
         TextView mHint = (TextView)findViewById(R.id.idTextHint);
         Set<String> followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
 
-        if(prefs.contains("seen_hint") ) {
+        if(prefs.contains("seen_hint") && mHint!=null) {
             mHint.setVisibility(View.INVISIBLE);
         } else if ( followDriverNames.isEmpty() && (prefs.getString("writein_driver_name_key", "")).equals("")) {
             mHint.setVisibility(View.VISIBLE);
@@ -225,12 +230,27 @@ public class MainActivity extends AppCompatActivity {
         unbindService(vvsCallbacks);
     }
 
+    private void rollOldValuesBack()
+    {
+        if(mTextViewLarge!=null && mTextViewLarge2!=null)
+            mTextViewLarge2.setText(mTextViewLarge.getText());
+        if(mTextViewCarNr!=null && mTextViewCarNr2!=null)
+            mTextViewCarNr2.setText(mTextViewCarNr.getText());
+        if(mTextViewPosition!=null && mTextViewPosition2!=null)
+            mTextViewPosition2.setText(mTextViewPosition.getText());
+    }
     public void processMesssage(Map<String,String> englishMessageMap) {
         String englishMessage = englishMessageMap.get("message");
         System.out.println("processMessage " + englishMessageMap);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
+                    if (englishMessageMap.containsKey("s1")||
+                            englishMessageMap.containsKey("s2")||
+                            englishMessageMap.containsKey("lap")||
+                            (englishMessageMap.containsKey("position")))
+                        rollOldValuesBack();
 
                     if(mTextView!=null)
                         mTextView.setText(mTextView.getText() + " " + englishMessage);
@@ -241,13 +261,13 @@ public class MainActivity extends AppCompatActivity {
                     if(englishMessageMap.containsKey("lap") && mTextViewLarge!=null)
                         mTextViewLarge.setText(cutDecimal(englishMessageMap.get("lap")));
                     if(englishMessageMap.containsKey("carNr") && mTextViewCarNr!=null) {
-                        if (!(englishMessageMap.get("carNr").equals(mTextViewCarNr.getText())))
-                            // Reset the position field since we don't know the position of the new car
-                            mTextViewPosition.setText("");
-                        mTextViewCarNr.setText(englishMessageMap.get("carNr"));
+                            if (false && !(englishMessageMap.get("carNr").equals(mTextViewCarNr.getText())))
+                                // Reset the position field since we don't know the position of the new car
+                                mTextViewPosition.setText("");
+                            mTextViewCarNr.setText(englishMessageMap.get("carNr"));
                     }
                     // Of course if we have the position, great :-)
-                    if(englishMessageMap.containsKey("position") && mTextViewPosition!=null)
+                    if(englishMessageMap.containsKey("position") && !englishMessageMap.get("position").equals("") && mTextViewPosition!=null)
                         mTextViewPosition.setText("P"+englishMessageMap.get("position"));
                     if(englishMessageMap.containsKey("time_meta")){
                         if(englishMessageMap.get("time_meta").equals("improved"))
