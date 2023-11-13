@@ -77,12 +77,6 @@ public class MainActivity extends AppCompatActivity {
 
         setHintVisibility();
 
-        if(collect==null){
-            System.out.println("Create Collect object to manage sensors");
-            collect = new CollectFg(getApplicationContext());
-            collect.startServiceStandby();
-        }
-
         // This is the main audio stream managed by your hardware up-down key
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
@@ -196,6 +190,7 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName className, IBinder service) {
             VirtualValtteriService.VirtualValtteriBinder binder = (VirtualValtteriService.VirtualValtteriBinder) service;
             vvs = binder.getService();
+            assert vvs!=null;
             System.out.println("VVS Bound");
             queueLoop();
         }
@@ -212,6 +207,13 @@ public class MainActivity extends AppCompatActivity {
         // Configure the behavior of the hidden system bars.
         windowInsetsController.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         windowInsetsController.hide(WindowInsetsCompat.Type.systemBars());
+
+        if(collect==null){
+            System.out.println("Create Collect object to manage sensors");
+            collect = new CollectFg(getApplicationContext());
+        }
+        collect.startServiceStandby();
+
         refreshEverything();
         Intent intent = new Intent(this, VirtualValtteriService.class);
         bindService(intent, vvsCallbacks, Context.BIND_AUTO_CREATE);
@@ -257,8 +259,7 @@ public class MainActivity extends AppCompatActivity {
                             (englishMessageMap.containsKey("position")))
                         rollOldValuesBack();
 
-                    if(mTextView!=null)
-                        mTextView.setText(mTextView.getText() + " " + englishMessage);
+                    textViewAppend(englishMessage);
                     if(englishMessageMap.containsKey("s1") && mTextViewLarge!=null)
                         mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s1")));
                     if(englishMessageMap.containsKey("s2") && mTextViewLarge!=null)
@@ -286,5 +287,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                }
             });
+        }
+        public void textViewAppend(String str){
+            if(mTextView!=null)
+                mTextView.setText(mTextView.getText() + " " + str);
         }
     }

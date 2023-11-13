@@ -12,6 +12,7 @@ public class WebSocketManager {
     private URI serverUri;
     private final VirtualValtteriService vvs;
     private boolean isRestarting = false;
+    private boolean dontRestart = false;
 
     public WebSocketManager(String websocketUrl, VirtualValtteriService vvs)
             throws URISyntaxException {
@@ -52,6 +53,11 @@ public class WebSocketManager {
             vvs.processMessage(message);
         }
         public void  onClose(int code, String reason, boolean remote){
+            if(dontRestart){
+                System.out.println("dontRestart=true: Will close the websocket, no restart.");
+                mWebSocketClient.isClosedForever=true;
+                return;
+            }
             System.out.println("Websocket disconnected - scheduling a re-connect in a sec...");
             if(isRestarting){
                 System.err.println("Already scheduled to restart. Not doing anything in this thread.");
@@ -100,8 +106,17 @@ public class WebSocketManager {
     }
 
     public void close() {
-        mWebSocketClient.close();
-        mWebSocketClient = null;
+        if(mWebSocketClient!=null){
+            mWebSocketClient.close();
+            mWebSocketClient = null;
+        }
+    }
+    public void intentionallyClose() {
+        if(mWebSocketClient!=null){
+            mWebSocketClient.isClosedForever=true;
+            mWebSocketClient.close();
+            dontRestart = true;
+        }
     }
 
 }

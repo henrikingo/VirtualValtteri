@@ -83,7 +83,7 @@ public class Collect implements SensorEventListenerWrapper {
         return singletonInstance;
     }
 
-    public Collect(Context context){
+    public Collect(Context context) {
         this.context = context;
         sensorManager = SensorManagerWrapper.getInstance(context);
         earthAccel = sensorManager.getDefaultSensor(SensorWrapper.TYPE_EARTH_ACCELERATION);
@@ -93,10 +93,9 @@ public class Collect implements SensorEventListenerWrapper {
         gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
 
 
-
-        for(SensorWrapper s: sensorManager.getSensorList(Sensor.TYPE_ALL)){
-            System.out.println(String.format("Listing all sensors: typeString=%s type=%s vendor=%s", s.getStringType(), s.getType(), s.getVendor()));
-        }
+        //for(SensorWrapper s: sensorManager.getSensorList(Sensor.TYPE_ALL)){
+        //    System.out.println(String.format("Listing all sensors: typeString=%s type=%s vendor=%s", s.getStringType(), s.getType(), s.getVendor()));
+        //}
 
 
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
@@ -106,6 +105,10 @@ public class Collect implements SensorEventListenerWrapper {
         looper = new LooperThread();
         looper.start();
         // This became some kind of main event loop when we moved into being a service... oops \o/
+        startVvsEventLoop();
+    }
+
+    public void startVvsEventLoop(){
         startNotificationTimer();
         createNotificationChannel();
     }
@@ -193,7 +196,7 @@ public class Collect implements SensorEventListenerWrapper {
     }
 
     private int idleCount=0;
-    private final int IDLE_MAX = 60;
+    private final int IDLE_MAX = 600;
 
     public boolean startStopSensors(){
         SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
@@ -210,10 +213,16 @@ public class Collect implements SensorEventListenerWrapper {
             }
             if(!started){
                 idleCount++;
-                if(idleCount>IDLE_MAX/2){
+                if (idleCount>IDLE_MAX) {
+                    System.out.println("Stopping VirtualValtteri after " + IDLE_MAX + " seconds.");
+                    idleCount=0;
+                    hibernateVvsService();
+                }
+                else if(idleCount>(IDLE_MAX/2)) {
+                    System.out.println("Remove sticky notification after " + IDLE_MAX/2 + " seconds idle.");
                     service.stopForeground(true);
-                } else if (idleCount>IDLE_MAX) {
-                    service.stopSelf();
+                    whichNotification = null;
+                    notification = null;
                 }
                 return true;
             }
@@ -221,6 +230,11 @@ public class Collect implements SensorEventListenerWrapper {
         return false;
     }
 
+    public void hibernateVvsService () {
+        //this.service.stopSelf(this.VVS.startId);
+        stopNotificationTimer();
+        this.VVS.stopWebsocketManager();
+    }
 
     public void onAccuracyChanged(SensorWrapper sensor, int accuracy){
         System.out.println(String.format("Accuracy changed. Sensor=%s accuracy=%s", sensor.getStringType(), accuracy));
@@ -256,6 +270,7 @@ public class Collect implements SensorEventListenerWrapper {
     Timer timer;
     TimerTask timerTask;
     public void startNotificationTimer() {
+        System.out.println("startNotificationTimer() " + timer);
         if(timer==null){
             timer = new Timer();
             initializeTimerTask();
@@ -461,14 +476,12 @@ public class Collect implements SensorEventListenerWrapper {
     private String whichNotification = null;
     public void showStartedNotification () {
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        //NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if(notification!=null){
             builder
                     .setContentTitle(filename)
                     .setContentText(getNotificationString());
             notification = builder.build();
             notificationManager.notify(77, notification);
-            //service.startForeground(77, notification);
         }
         else {
             System.out.println("notification was null");
@@ -476,7 +489,6 @@ public class Collect implements SensorEventListenerWrapper {
         whichNotification="started";
     }
     public void showStandbyNotification () {
-        //System.out.println("showStandbyNotification()");
         if(whichNotification=="standby") return;
 
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
@@ -486,7 +498,6 @@ public class Collect implements SensorEventListenerWrapper {
                     .setContentText("Sensors stopped");
             notification = builder.build();
             notificationManager.notify(77, notification);
-            //service.startForeground(77, notification);
         }
         else {
             System.out.println("notification was null");

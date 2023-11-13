@@ -19,7 +19,6 @@ public class CollectFg {
         Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
         serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService");
         serviceIntent.putExtra("do", "start");
-        //context.startForegroundService(serviceIntent);
         context.getApplicationContext().startForegroundService(serviceIntent);
     }
     public void stopService() {
@@ -53,4 +52,5 @@ public class CollectFg {
         serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.preferences");
         serviceIntent.putExtra("do", "apply");
     }
+
 }

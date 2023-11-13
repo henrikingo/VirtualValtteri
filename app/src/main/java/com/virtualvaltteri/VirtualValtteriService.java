@@ -79,18 +79,20 @@ public class VirtualValtteriService extends Service {
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        System.out.println("onStartCommand " + startId);
         if (this.startId >= 0 && this.startId != startId){
             System.err.println(String.format("VirtualValtteriService: I received a different startId (%s) than the one I already have (%s)", startId, this.startId));
         }
         this.startId=startId;
         this.collect = Collect.getInstance(getApplicationContext());
+        this.collect.VVS = this;
+        this.collect.startVvsEventLoop();
         // Hurry up with that sticky notification
         if (this.collect.notification == null)
             this.collect.standby(this);
 
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         this.followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
-        this.collect.VVS = this;
         dispatchBundleCommands(intent);
 
         return START_REDELIVER_INTENT;
@@ -216,6 +218,12 @@ public class VirtualValtteriService extends Service {
         });
     }
 
+    public void stopWebsocketManager(){
+        if(this.mWebSocket!=null){
+            this.mWebSocket.intentionallyClose();
+        }
+    }
+
     public void ttsDone() {
         tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);
         // Connect to WebSocket server
@@ -234,7 +242,6 @@ public class VirtualValtteriService extends Service {
 
 
         setSpeaker(prefs);
-        System.out.println("VVS.applyPreferences()");
     }
     private void setSpeaker(SharedPreferences prefs) {
         String speaker = prefs.getString("speaker_key", "Speaker");
@@ -267,6 +274,7 @@ public class VirtualValtteriService extends Service {
     public void onDestroy() {
         collect.stopSensors();
         collect.stopNotificationTimer();
+        System.out.flush();
         super.onDestroy();
     }
 }
