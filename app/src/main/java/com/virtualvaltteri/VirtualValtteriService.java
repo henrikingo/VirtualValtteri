@@ -42,7 +42,7 @@ public class VirtualValtteriService extends Service {
     String ttsVoice = "default";
     public Set<String> followDriverNames;
     Set<String> followDriverIds = new HashSet<>(Collections.emptyList());
-    private final String initialMessage = "Valtteri. It's James.\n";
+    private String initialMessage = "Valtteri. It's James.\n";
     private final IBinder binder = new VirtualValtteriBinder();
     private final List<Map<String,String>> pastMessages = Collections.synchronizedList(new ArrayList<>(100));
     private Handler ui;
@@ -134,6 +134,10 @@ public class VirtualValtteriService extends Service {
     }
 
     public void processMessage(String message) {
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        setDrivers(prefs);
+        System.out.println("start of processmessage: " + followDriverNames);
+
         Map<String,String> englishMessageMap = handler.message(message);
         String englishMessage = englishMessageMap.get("message");
         String messageType = englishMessageMap.get("type");
@@ -141,7 +145,6 @@ public class VirtualValtteriService extends Service {
             tts.speak(englishMessage, TextToSpeech.QUEUE_ADD, null, null);
         }
 
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
         prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers)).commit();
 
@@ -226,6 +229,8 @@ public class VirtualValtteriService extends Service {
 
     public void ttsDone() {
         tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);
+        // Just say initialMessage once when starting, never again:
+        initialMessage = "";
         // Connect to WebSocket server
         connectWebsocket();
     }
@@ -235,7 +240,7 @@ public class VirtualValtteriService extends Service {
         collect.startStopSensors();
         setDrivers(prefs);
         if (handler==null) handler = new MessageHandler(this.followDriverNames, this.collect);
-        else handler.followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
+        else this.followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
 
         SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
         prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers));
@@ -265,7 +270,7 @@ public class VirtualValtteriService extends Service {
             }
         }
     }
-    private void setDrivers(SharedPreferences prefs){
+    public void setDrivers(SharedPreferences prefs){
         followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
         System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
         followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));

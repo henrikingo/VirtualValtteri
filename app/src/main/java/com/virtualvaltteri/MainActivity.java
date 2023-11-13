@@ -68,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
         settingsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+                prefs.edit().putString("seen_hint", "true").commit();
                 // opening a new intent to open settings activity.
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);

@@ -26,7 +26,6 @@ public class MessageHandler {
      */
     public HashMap<String, DriverState> driverLookup;
     public HashMap<String, String> driverIdLookup;
-    public Set<String> followDriverNames;
     private String sessionType = "Session";
     private String latestDriver = "";
     private Collect collect;
@@ -35,13 +34,13 @@ public class MessageHandler {
     public MessageHandler(Set<String> followDriverNames, Collect collect){
         driverLookup = new HashMap<String, DriverState>();
         driverIdLookup = new HashMap<String, String>();
-        this.followDriverNames = followDriverNames;
         this.collect=collect;
     }
     public Speaker speaker = new VeryShort();
 
     private DriverState getDriverState(String driverId, Map<String, String> englishMessageMap) {
         DriverState d = driverLookup.get("r" + driverId);
+        if (d==null) d=new DriverState();
         if (latestDriver != null && !latestDriver.equals(d.id) && followThisDriver(d)) {
             latestDriver = d.id;
             englishMessageMap.put("driverChanged", "true");
@@ -95,8 +94,9 @@ public class MessageHandler {
                         parseInitHtml(parts[2]);
                         System.out.println(driverIdLookup.toString());
                         System.out.println(driverLookup.toString());
+                        System.out.println("followDriverNames " + followDriverNames());
                         englishMessageMap.put("driversCount", "" + driverIdLookup.keySet().size());
-                        if(!followAnyDriver()){
+                        if(!followAnyDriver() && followDriverNames().size() == 0){
                             englishMessage.append(speaker.comment("Please select a driver from this session. "));
                         }
                         break;
@@ -220,27 +220,30 @@ public class MessageHandler {
             }
         }
     }
+
+    private Set<String> followDriverNames(){
+        return this.collect.VVS.followDriverNames;
+    }
     private boolean followThisDriver(DriverState d){
-        Set<String> followDriverNames = this.collect.VVS.followDriverNames;
-        System.out.println("Follow this driver: " + followDriverNames);
+        System.out.println("Follow this driver: " + followDriverNames());
         // If no driver is specified, stay silent
-        if (followDriverNames.isEmpty())
+        if (followDriverNames().isEmpty())
             return false;
         // This typically means some generic info, not attached to a specific driver
         // Return true for convenience
         if (d==null)
             return true;
 
-        for(String driverName: followDriverNames){
-            if(d.name.startsWith(driverName))
+        for(String driverName: followDriverNames()){
+            if(d.name!=null && d.name.startsWith(driverName))
                 return true;
         }
         return false;
     }
 
     private boolean followAnyDriver(){
-        System.out.println(followDriverNames.size());
-        for (String followDriver: followDriverNames){
+        System.out.println("followDriverNames size: " + followDriverNames().size());
+        for (String followDriver: followDriverNames()){
             System.out.println(followDriver);
             for(String sessionDriver: driverIdLookup.keySet()){
                 System.out.println("   " + sessionDriver);
