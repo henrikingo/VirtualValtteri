@@ -9,7 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="SmallTransparentText">#77777777</color>
     <color name="brightLargeText">#eeffee00</color>
-    <color name="brightLargeText2">#66bbbbbb</color>
+    <color name="brightLargeText2">#99bbbbbb</color>
     <color name="brightLargeTextSub">#dd9900</color>
     <color name="timeNormal">@color/brightLargeText</color>
     <color name="timeImproved">#FF00FF00</color>
