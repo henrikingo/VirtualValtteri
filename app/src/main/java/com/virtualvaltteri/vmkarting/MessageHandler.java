@@ -13,6 +13,8 @@ import org.jsoup.select.Elements;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -94,8 +96,10 @@ public class MessageHandler {
                         parseInitHtml(parts[2]);
                         System.out.println(driverIdLookup.toString());
                         System.out.println(driverLookup.toString());
+
                         System.out.println("followDriverNames " + followDriverNames());
                         englishMessageMap.put("driversCount", "" + driverIdLookup.keySet().size());
+
                         if(!followAnyDriver() && followDriverNames().size() == 0){
                             englishMessage.append(speaker.comment("Please select a driver from this session. "));
                         }
@@ -257,7 +261,8 @@ public class MessageHandler {
     private void parseInitHtml(String html){
         String validHtml = "<html><head></head><body><table>"+html+"</table></body></html>";
         Document table = Jsoup.parse(validHtml);
-        //System.out.println("JSOUP: "+table);
+        System.out.println("JSOUP: "+table);
+        System.out.println("prseInitHTML: "+html);
         Elements rows = table.getElementsByTag("tr");
         int rowcount = 0;
         //System.out.println("html table rows: "+rows);
@@ -289,6 +294,7 @@ public class MessageHandler {
             driver.rank = row.select(".rk div").first().text().toLowerCase();
             driverIdLookup.put(driver.name, driver.id);
             driverLookup.put(driver.id, driver);
+            System.out.println(driver);
         }
     }
 

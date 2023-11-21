@@ -3,6 +3,7 @@ package com.virtualvaltteri.settings;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import androidx.preference.SwitchPreference;
 import com.virtualvaltteri.MainActivity;
 import com.virtualvaltteri.R;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.SortedSet;
@@ -27,7 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceChangeListener {
-    public CharSequence[] sortedDrivers;
     public CharSequence[] sortedDrivers2;
     public DynamicMultiSelectListPreference driversPreference;
     public MultiSelectListPreference favoritedDriversPreference;
@@ -42,22 +43,21 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
 
     public SettingsFragment(Bundle savedInstanceState){
         System.out.println("Would you prefer this constructor if I create it?");
-        restoreState(savedInstanceState);
+        //restoreState(savedInstanceState);
 
     }
 
-    public SettingsFragment(Preference.OnPreferenceChangeListener prefChanged, CharSequence[] sortedDrivers, SortedSet<String> sortedDrivers2){
+    public SettingsFragment(Preference.OnPreferenceChangeListener prefChanged, SortedSet<String> sortedDrivers2){
         this.prefChanged=prefChanged;
-        this.sortedDrivers=sortedDrivers;
         this.sortedDrivers2=sortedDrivers2.toArray(new CharSequence[0]);
     }
 
 
     public CharSequence driverInSession(CharSequence matchDriver, boolean matchPrefix){
-        return _matchDriver(matchDriver, matchPrefix, true);
+        return _matchDriver(sortedDrivers2, matchDriver, matchPrefix, true);
     }
 
-    public CharSequence _matchDriver(CharSequence matchDriver, boolean matchPrefix, boolean currentSession){
+    public static CharSequence _matchDriver(CharSequence[] sortedDrivers2, CharSequence matchDriver, boolean matchPrefix, boolean currentSession){
         if(matchDriver==null) return null;
         if(matchPrefix && !matchDriver.equals("")){
             matchDriver = new StringBuilder("^").append(matchDriver).append(".*");
@@ -82,22 +82,19 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putCharSequenceArray("sortedDrivers",sortedDrivers);
         outState.putCharSequenceArray("sortedDrivers2", sortedDrivers2);
     }
 
     public void restoreState(Bundle savedInstanceState){
-        System.out.println(sortedDrivers);
         System.out.println(Arrays.asList(sortedDrivers2));
         System.out.println(savedInstanceState);
         if(savedInstanceState!=null) {
             CharSequence[] newSortedDrivers = savedInstanceState.getCharSequenceArray("sortedDrivers");
             if (newSortedDrivers!=null){
-                this.sortedDrivers=newSortedDrivers;
             }
             CharSequence[] newSortedDrivers2 = savedInstanceState.getCharSequenceArray("sortedDrivers2");
             if (newSortedDrivers2!=null){
-                this.sortedDrivers2=newSortedDrivers2;
+                //this.sortedDrivers2=newSortedDrivers2;
             }
         }
     }
@@ -113,7 +110,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         this.prefChanged = ((SettingsActivity)getActivity()).prefChanged;
 
         if(refreshing){
-            System.out.println("skipping refresh, already done somewhere else");
+            System.out.println("skipping refresh, already done somewhere else/ we're looping");
         }
         refreshing = true;
         refreshEverything();
@@ -128,9 +125,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-                System.out.println("onSharedPreferenceChanged");
                 if(refreshing){
-                    System.out.println("skipping refresh, already done somewhere else");
+                    System.out.println("skipping refresh, already done somewhere else/loop prevention");
+                    return;
                 }
                 refreshing = true;
                 refreshEverything();
@@ -181,7 +178,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         // For whatever reason simple favDrivers.addAll(driversNotInThisSession) refused to work...
         SortedSet<String> newFavDrivers = new ConcurrentSkipListSet<>();
         for(String s: favDrivers){
-           // System.out.println(s);
+            // System.out.println(s);
             newFavDrivers.add(s);
         }
         for(String s: driversNotInThisSession){
@@ -230,6 +227,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         }
 
         driversPreference.setValues(followDriversInThisSession);
+        System.out.println("driversPreference.getValues "  +driversPreference.getValues());
 
 
         favoritedDriversPreference.setSummaryProvider(new Preference.SummaryProvider() {
@@ -254,6 +252,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                 return text;
             }
         });
+
+        if(getActivity()!=null){
+
+        Set<String> values = driversPreference.getReducedValues(true);
+        SharedPreferences prefs = getActivity().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        prefs.edit().putStringSet("follow_driver_names_key", values).commit();
+        }
 
     }
     @Override

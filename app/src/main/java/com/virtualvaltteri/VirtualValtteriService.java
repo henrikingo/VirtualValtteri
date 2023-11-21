@@ -9,7 +9,11 @@ import android.os.IBinder;
 import android.os.Message;
 import android.speech.tts.TextToSpeech;
 
+import androidx.preference.MultiSelectListPreference;
+
 import com.virtualvaltteri.sensors.Collect;
+import com.virtualvaltteri.settings.DynamicMultiSelectListPreference;
+import com.virtualvaltteri.settings.SettingsFragment;
 import com.virtualvaltteri.speaker.Quiet;
 import com.virtualvaltteri.speaker.Speaker;
 import com.virtualvaltteri.speaker.VeryShort;
@@ -23,14 +27,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.concurrent.BlockingQueue;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class VirtualValtteriService extends Service {
+    private static VirtualValtteriService VvsInstance=null;
     public int startId=-1;
     String websocketUrl = null;
     private WebSocketManager mWebSocket;
@@ -43,9 +46,11 @@ public class VirtualValtteriService extends Service {
     public Set<String> followDriverNames;
     Set<String> followDriverIds = new HashSet<>(Collections.emptyList());
     private String initialMessage = "Valtteri. It's James.\n";
+    private int initialMessageDone = 2;
     private final IBinder binder = new VirtualValtteriBinder();
     private final List<Map<String,String>> pastMessages = Collections.synchronizedList(new ArrayList<>(100));
     private Handler ui;
+    private boolean refreshing = false;
 
     public class VirtualValtteriBinder extends Binder {
         VirtualValtteriService getService() {
@@ -76,6 +81,7 @@ public class VirtualValtteriService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        VvsInstance = this;
     }
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -85,8 +91,7 @@ public class VirtualValtteriService extends Service {
         }
         this.startId=startId;
         this.collect = Collect.getInstance(getApplicationContext());
-        this.collect.VVS = this;
-        this.collect.startVvsEventLoop();
+        this.collect.startVvsEventLoop(this);
         // Hurry up with that sticky notification
         if (this.collect.notification == null)
             this.collect.standby(this);
@@ -94,6 +99,18 @@ public class VirtualValtteriService extends Service {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         this.followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
         dispatchBundleCommands(intent);
+        prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
+            @Override
+            public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
+                System.out.println("VVS.onSharedPreferenceChanged");
+                if(refreshing){
+                    System.out.println("skipping refresh, already done somewhere else");
+                }
+                refreshing = true;
+                applyPreferences();
+                refreshing = false;
+            }
+        });
 
         return START_REDELIVER_INTENT;
     }
@@ -131,12 +148,18 @@ public class VirtualValtteriService extends Service {
                 applyPreferences();
             }
         }
+        if(type.equals("com.virtualvaltteri.VirtualValtteriService.foregroundPing")){
+            if(doWhat.equals("pings")){
+                collect.ping();
+            }
+        }
     }
 
     public void processMessage(String message) {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
-        setDrivers(prefs);
-        System.out.println("start of processmessage: " + followDriverNames);
+        //setDrivers(prefs);
+        //applyPreferences();
+        //System.out.println("start of processmessage: " + followDriverNames);
 
         Map<String,String> englishMessageMap = handler.message(message);
         String englishMessage = englishMessageMap.get("message");
@@ -146,10 +169,20 @@ public class VirtualValtteriService extends Service {
         }
 
         SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
-        prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers)).commit();
+  //      followDriverNames = DynamicMultiSelectListPreference.getReducedValuesHelper(true,
+ //               prefs.getStringSet("follow_driver_names_key", (Set)new HashSet<>()),
+//                sortedDrivers.toArray(new CharSequence[0])
+//        );
+//        followDriverNames = DynamicMultiSelectListPreference.getReducedValuesHelper(true,
+//                new HashSet<>(handler.driverIdLookup.values()),
+//                sortedDrivers.toArray(new CharSequence[0])
+//        );
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putStringSet("sorted_drivers_key", ((Set)sortedDrivers));
+        editor.commit();
 
-        sendToMain("com.virtualvaltteri.processMessage", englishMessageMap);
-
+        sendToMain("com.virtualvaltteri.processMessage", englishMessageMap, (Set)sortedDrivers);
+        //applyPreferences();
        //if(englishMessageMap!=null)
          //   q.add(englishMessageMap);
 
@@ -160,9 +193,10 @@ public class VirtualValtteriService extends Service {
         }
         if (messageType=="init") pastMessages.clear();
         pastMessages.add(englishMessageMap);
+        //System.out.println("End of processmessage:" + followDriverNames);
     }
 
-    public void sendToMain(CharSequence type, Map<String,String> englishMessageMap){
+    public void sendToMain(CharSequence type, Map<String,String> englishMessageMap, Set sortedDriversLocal){
         Intent mainIntent = new Intent(this, MainActivity.class);
         mainIntent.putExtra("type", type);
         ArrayList<String> keys = new ArrayList<String>(englishMessageMap.keySet());
@@ -179,6 +213,7 @@ public class VirtualValtteriService extends Service {
         SharedPreferences.Editor editor = prefs.edit();
         String largeMessage = prefs.getString("large_message_key", "Valtteri, it's James.");
         editor.putString("english_message_ui", largeMessage + englishMessage);
+        editor.putStringSet("sorted_drivers_key", (Set)sortedDriversLocal);
         editor.commit();
 
     }
@@ -202,7 +237,6 @@ public class VirtualValtteriService extends Service {
         setSpeaker(prefs);
 
         websocketUrl = getString(R.string.url);
-        testRun = getString(R.string.testrun);
 
         ttsPitch = Float.parseFloat(getString(R.string.ttspitch));
         ttsVoice = getString(R.string.ttsvoice);
@@ -227,10 +261,15 @@ public class VirtualValtteriService extends Service {
         }
     }
 
-    public void ttsDone() {
-        tts.speak(initialMessage, TextToSpeech.QUEUE_ADD, null, null);
+    private String getInitialMessage(){
         // Just say initialMessage once when starting, never again:
-        initialMessage = "";
+        initialMessageDone--;
+        if (initialMessageDone<0) initialMessage="";
+        return initialMessage;
+    }
+    public void ttsDone() {
+        tts.speak(getInitialMessage(), TextToSpeech.QUEUE_ADD, null, null);
+
         // Connect to WebSocket server
         connectWebsocket();
     }
@@ -243,11 +282,113 @@ public class VirtualValtteriService extends Service {
         else this.followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<>());
 
         SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
-        prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers));
+        prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers)).commit();
 
 
         setSpeaker(prefs);
+        updateDrivers(sortedDrivers);
     }
+
+    public static void updateDrivers (Set<String> sortedDrivers){
+        SharedPreferences prefs =  VvsInstance.getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+
+        CharSequence writeInName = prefs.getString("writein_driver_name_key", "");
+        if(writeInName!=null)
+            writeInName= ((String) writeInName).toLowerCase();
+        boolean matchPrefix = prefs.getBoolean("match_writein_prefix_key",false);
+        System.out.println("VVS.updateDrivers: writein name: " + writeInName);
+        boolean autoFavorite = prefs.getBoolean("auto_favorite_key",false);
+
+        //driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
+        //driversPreference.setEntries(sortedDrivers2);
+        //driversPreference.setEntryValues(sortedDrivers2);
+        Set<String> driversNotInThisSession = DynamicMultiSelectListPreference.getReducedValuesHelper(
+                false,
+                prefs.getStringSet("drivers_key", new HashSet<>()),
+                sortedDrivers.toArray(new CharSequence[0])
+        );
+        Set<String> followDriversInThisSession = DynamicMultiSelectListPreference.getReducedValuesHelper(
+                true,
+                prefs.getStringSet("drivers_key", new HashSet<>()),
+                sortedDrivers.toArray(new CharSequence[0])
+        );
+        Set<String> allDriversInThisSessionSet = (new HashSet<>());
+        allDriversInThisSessionSet.addAll(driversNotInThisSession);
+        allDriversInThisSessionSet.addAll(followDriversInThisSession);
+        CharSequence[] allDriversInThisSession = allDriversInThisSessionSet.toArray(new CharSequence[0]);
+        System.out.println(driversNotInThisSession);
+        System.out.println(followDriversInThisSession);
+
+        CharSequence writeInNameFound = SettingsFragment._matchDriver(sortedDrivers.toArray(new CharSequence[0]), writeInName, matchPrefix, true);
+        System.out.println("VVS.update   Writein name in session: " +writeInNameFound);
+        if( writeInName!=null && (!writeInName.equals("")) && writeInNameFound != null){
+            System.out.println("Adding writein driver");
+            followDriversInThisSession.add(writeInNameFound.toString());
+        }
+
+        // favoritedDriversPreference are saved values from driversPreference that aren't driving
+        // in the current session. This preference is not persisted. It is essentially a helper or sidecar to the previous list.
+        Set<String> favDrivers = prefs.getStringSet("favorited_drivers_key", new HashSet<>());
+
+        // For whatever reason simple favDrivers.addAll(driversNotInThisSession) refused to work...
+        SortedSet<String> newFavDrivers = new ConcurrentSkipListSet<>();
+        for(String s: favDrivers){
+            // System.out.println(s);
+            newFavDrivers.add(s);
+        }
+        for(String s: driversNotInThisSession){
+            //System.out.println(s);
+            newFavDrivers.add(s);
+        }
+
+        System.out.println("VVS favDrivers: " + favDrivers);
+        //favDrivers.addAll(driversNotInThisSession);
+        // Add all old follows to favorites, and make them checked/on
+       /* System.out.println(autoFavorite);
+        if(autoFavorite){
+            favoritedDriversPreference.setValues(newFavDrivers);
+        }
+        System.out.println(favoritedDriversPreference.getValues());
+        // Otherwise add them to the list but leave them unchecked. They will eventually disappear if not checked.
+        favoritedDriversPreference.setEntries((CharSequence[]) newFavDrivers.toArray(new CharSequence[0]));
+        favoritedDriversPreference.setEntryValues((CharSequence[]) newFavDrivers.toArray(new CharSequence[0]));
+
+
+
+        System.out.println(favoritedDriversPreference.getValues());
+
+        System.out.println("newfavDrivers: " + " " + newFavDrivers);
+
+        // In this list we remove items that are unselected
+        CharSequence[] allEntries = favoritedDriversPreference.getEntryValues();
+        Vector<CharSequence> prunedEntries = new Vector<CharSequence>();
+        for(CharSequence cs:allEntries){
+            if(newFavDrivers.contains(cs.toString())){
+                prunedEntries.add(cs);
+            }
+        }
+        System.out.println("pruned favorites: " + prunedEntries);
+        if(prunedEntries.size()>0){
+            favoritedDriversPreference.setEntries((CharSequence[]) prunedEntries.toArray(new CharSequence[0]));
+            favoritedDriversPreference.setEntryValues((CharSequence[]) prunedEntries.toArray(new CharSequence[0]));
+        }
+
+        if(allDriversInThisSession!=null){
+            for (CharSequence s: allDriversInThisSession){
+                if(favDrivers.contains(s) && !followDriversInThisSession.contains(s)){
+                    followDriversInThisSession.add(s.toString());
+                }
+            }
+        }
+
+        driversPreference.setValues(followDriversInThisSession);
+        System.out.println("driversPreference.getValues "  +driversPreference.getValues());
+*/
+
+        prefs.edit().putStringSet("follow_driver_names_key", followDriversInThisSession).commit();
+    }
+
+
     private void setSpeaker(SharedPreferences prefs) {
         String speaker = prefs.getString("speaker_key", "Speaker");
         assert handler != null;
@@ -270,10 +411,15 @@ public class VirtualValtteriService extends Service {
             }
         }
     }
+    private int outputThrottle=0;
     public void setDrivers(SharedPreferences prefs){
+
+        //System.out.println("followDriverIdsbefore: " + followDriverIds);
+        //System.out.println("followDriverNames before: " + followDriverNames);
         followDriverIds = prefs.getStringSet("drivers_key", new HashSet<String>(Collections.emptyList()));
-        System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
-        followDriverNames = prefs.getStringSet("drivers_key", new HashSet<String>(Arrays.asList()));
+        followDriverNames = prefs.getStringSet("follow_driver_names_key", new HashSet<String>(Arrays.asList()));
+        //System.out.println("Recovered followDriverIds from shared preferences storage: " + followDriverIds);
+        //System.out.println("Recovered followDriverNames from shared preferences storage: " + followDriverNames);
     }
     @Override
     public void onDestroy() {

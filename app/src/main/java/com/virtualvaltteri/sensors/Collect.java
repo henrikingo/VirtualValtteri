@@ -108,6 +108,10 @@ public class Collect implements SensorEventListenerWrapper {
         startVvsEventLoop();
     }
 
+    public void startVvsEventLoop(VirtualValtteriService vvs){
+        this.VVS=vvs;
+        startVvsEventLoop();
+    }
     public void startVvsEventLoop(){
         startNotificationTimer();
         createNotificationChannel();
@@ -216,13 +220,7 @@ public class Collect implements SensorEventListenerWrapper {
                 if (idleCount>IDLE_MAX) {
                     System.out.println("Stopping VirtualValtteri after " + IDLE_MAX + " seconds.");
                     idleCount=0;
-                    hibernateVvsService();
-                }
-                else if(idleCount>(IDLE_MAX/2)) {
-                    System.out.println("Remove sticky notification after " + IDLE_MAX/2 + " seconds idle.");
-                    service.stopForeground(true);
-                    whichNotification = null;
-                    notification = null;
+                    stopVvsService();
                 }
                 return true;
             }
@@ -230,10 +228,13 @@ public class Collect implements SensorEventListenerWrapper {
         return false;
     }
 
-    public void hibernateVvsService () {
-        //this.service.stopSelf(this.VVS.startId);
+    public void stopVvsService () {
+        service.stopForeground(true);
+        whichNotification = null;
+        notification = null;
         stopNotificationTimer();
         this.VVS.stopWebsocketManager();
+        this.service.stopSelf(this.VVS.startId);
     }
 
     public void onAccuracyChanged(SensorWrapper sensor, int accuracy){
@@ -512,5 +513,8 @@ public class Collect implements SensorEventListenerWrapper {
     }
     public SensorWrapper getSensor(int type){
         return sensorManager.getDefaultSensor(type);
+    }
+    public void ping(){
+        idleCount=0;
     }
 }

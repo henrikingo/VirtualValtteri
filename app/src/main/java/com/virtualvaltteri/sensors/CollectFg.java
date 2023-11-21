@@ -53,4 +53,11 @@ public class CollectFg {
         serviceIntent.putExtra("do", "apply");
     }
 
+    public void ping(){
+        System.out.println("CollectFg.ping()");
+        Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
+        serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.foregroundPing");
+        serviceIntent.putExtra("do", "ping");
+    }
+
 }

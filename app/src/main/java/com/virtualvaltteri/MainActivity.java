@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 public void handleMessage(Message msg) {
                     Map<String,String> englishMessageMap = (Map<String, String>) msg.obj;
                     processMesssage(englishMessageMap);
+                    collect.ping();
                 }
             };
             vvs.subscribe(mainLooper.mHandler);
@@ -219,6 +220,8 @@ public class MainActivity extends AppCompatActivity {
         refreshEverything();
         Intent intent = new Intent(this, VirtualValtteriService.class);
         bindService(intent, vvsCallbacks, Context.BIND_AUTO_CREATE);
+
+
     }
     private void refreshEverything()
     {
