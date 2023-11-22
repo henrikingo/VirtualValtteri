@@ -76,4 +76,15 @@
 
         </PreferenceCategory>
 
+        <PreferenceCategory android:title="System">
+                <ListPreference
+                    android:defaultValue="on"
+                    android:dialogTitle="Close VirtualValtteri"
+                    android:entries="@array/system_close_key_choices"
+                    android:entryValues="@array/system_close_key_choices"
+                    android:key="system_close_key"
+                    android:title="Close VirtualValtteri"
+                    />
+        </PreferenceCategory>
+
 </PreferenceScreen>

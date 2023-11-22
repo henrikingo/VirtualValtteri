@@ -9,9 +9,11 @@ import com.virtualvaltteri.VirtualValtteriService;
 
 public class CollectFg {
     Context context;
+    Context mainActivity;
     Collect collect;
     public CollectFg(Context context) {
-        this.context = context;
+        this.mainActivity = context;
+        this.context = mainActivity.getApplicationContext();
         this.collect = Collect.getInstance(context);
     }
 
@@ -58,6 +60,14 @@ public class CollectFg {
         Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
         serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.foregroundPing");
         serviceIntent.putExtra("do", "ping");
+    }
+    public void close(){
+        System.out.println("CollectFg.close()");
+        if(collect!=null && collect.VVS!=null) collect.VVS.shutdown=true;
+        Intent serviceIntent = new Intent(this.context, VirtualValtteriService.class);
+        serviceIntent.putExtra("type", "com.virtualvaltteri.VirtualValtteriService.system");
+        serviceIntent.putExtra("do", "close");
+
     }
 
 }

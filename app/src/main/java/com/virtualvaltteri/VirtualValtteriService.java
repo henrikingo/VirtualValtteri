@@ -33,6 +33,7 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 public class VirtualValtteriService extends Service {
+    public boolean shutdown=false;
     private static VirtualValtteriService VvsInstance=null;
     public int startId=-1;
     String websocketUrl = null;
@@ -86,6 +87,12 @@ public class VirtualValtteriService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         System.out.println("onStartCommand " + startId);
+        if(shutdown){
+            //System.exit(-1);
+            System.out.println("onStartCommand: shutdown initiated, returning immediately.");
+            System.exit(3);
+            return Service.START_NOT_STICKY;
+        }
         if (this.startId >= 0 && this.startId != startId){
             System.err.println(String.format("VirtualValtteriService: I received a different startId (%s) than the one I already have (%s)", startId, this.startId));
         }
@@ -149,12 +156,25 @@ public class VirtualValtteriService extends Service {
             }
         }
         if(type.equals("com.virtualvaltteri.VirtualValtteriService.foregroundPing")){
-            if(doWhat.equals("pings")){
+            if(doWhat.equals("ping")){
                 collect.ping();
+            }
+        }
+        if(type.equals("com.virtualvaltteri.VirtualValtteriService.system")){
+            if(doWhat.equals("close")){
+                closeApp();
+
             }
         }
     }
 
+    public int closeApp(){
+        shutdown=true;
+        collect.stopVvsService();
+        MainActivity.mainActivityInstance.closeApp();
+        System.exit(-1);
+        return 0;
+    }
     public void processMessage(String message) {
         SharedPreferences prefs = getApplicationContext().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         //setDrivers(prefs);
@@ -284,9 +304,16 @@ public class VirtualValtteriService extends Service {
         SortedSet<String> sortedDrivers = new ConcurrentSkipListSet<>(handler.driverIdLookup.keySet());
         prefs.edit().putStringSet("sorted_drivers_key", ((Set)sortedDrivers)).commit();
 
-
         setSpeaker(prefs);
         updateDrivers(sortedDrivers);
+
+        if(prefs.getString("system_close_key", "On").equals("Close")){
+            System.out.println("VVS Closing VirtualValtteri. Reason: User selected Close in Settings.");
+            closeApp();
+            //System.exit(0);
+        }
+
+
     }
 
     public static void updateDrivers (Set<String> sortedDrivers){

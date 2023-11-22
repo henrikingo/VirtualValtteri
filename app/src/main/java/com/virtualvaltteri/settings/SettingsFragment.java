@@ -11,6 +11,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.EditTextPreference;
+import androidx.preference.ListPreference;
 import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -32,6 +33,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     public CharSequence[] sortedDrivers2;
     public DynamicMultiSelectListPreference driversPreference;
     public MultiSelectListPreference favoritedDriversPreference;
+    ListPreference closeList;
     Preference.OnPreferenceChangeListener prefChanged;
     boolean refreshing=false;
     private boolean androidBrokeThis=false;
@@ -259,6 +261,17 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         SharedPreferences prefs = getActivity().getSharedPreferences(MainActivity.SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
         prefs.edit().putStringSet("follow_driver_names_key", values).commit();
         }
+
+        closeList = (ListPreference) findPreference("system_close_key");
+        System.out.println(closeList.getValue());
+        if(closeList.getValue().equals("Close") && getActivity()!=null){
+            getActivity().finishAffinity();
+            getActivity().finishActivity(0);
+            getActivity().finishAndRemoveTask();
+            getActivity().finish();
+        }
+
+        //closeList.setOnPreferenceChangeListener(prefChanged);
 
     }
     @Override

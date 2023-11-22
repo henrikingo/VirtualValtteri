@@ -3,15 +3,19 @@ package com.virtualvaltteri;
 import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -21,25 +25,16 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
-import android.content.Intent;
-import android.os.PowerManager;
-import android.net.Uri;
-import android.provider.Settings;
-
+import com.virtualvaltteri.sensors.CollectFg;
 import com.virtualvaltteri.settings.SettingsActivity;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-
-import com.virtualvaltteri.sensors.CollectFg;
 
 public class MainActivity extends AppCompatActivity {
     public final static String SHARED_PREFS_MAGIC_WORD = "com.virtualvaltteri_preferences";
+    public static MainActivity mainActivityInstance;
     private TextView mTextView;
     private TextView mTextViewLarge;
     private TextView mTextViewCarNr;
@@ -52,7 +47,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Flip back the shutdown key. Without this app will close in seconds.
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        prefs.edit().putString("system_close_key", "On").commit();
+
+
         System.out.println("Creating main app activity...");
+        mainActivityInstance=this;
         // Initialize UI elements
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
@@ -135,9 +137,25 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         System.out.println("MainActivity.onActivityResult() " +requestCode + " " + resultCode + " " + data);
+
+        SharedPreferences prefs = getSharedPreferences(SHARED_PREFS_MAGIC_WORD, MODE_PRIVATE);
+        if(prefs.getString("system_close_key", "On").equals("Close")){
+            //System.out.println("Closing VirtualValtteri. Reason: User selected Close in Settings.");
+            //closeApp();
+        }
+
         System.out.println("Just signal VirtualValtteriService to applyPreferences()");
         collect.applyPreferences();
         setHintVisibility();
+    }
+    public void closeApp(){
+        if(vvs!=null) vvs.unsubscribe(mainLooper.mHandler);
+        //unbindService(vvsCallbacks);
+        collect.close();
+        // Flip back the shutdown key so we are able to start the next time
+        //prefs.edit().putString("system_close_key", "On").commit();
+        System.out.println("Siri how do I kill an android process");
+        finishAndRemoveTask();
     }
     private void setColorAll(int color){
         if(mTextViewPosition==null)
@@ -152,6 +170,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        System.runFinalizersOnExit(true);
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     private VirtualValtteriService vvs;
@@ -194,6 +214,9 @@ public class MainActivity extends AppCompatActivity {
             VirtualValtteriService.VirtualValtteriBinder binder = (VirtualValtteriService.VirtualValtteriBinder) service;
             vvs = binder.getService();
             assert vvs!=null;
+
+            //binder.linkToDeath(() -> {System.out.println("binderDied");closeApp();},0);
+
             System.out.println("VVS Bound");
             queueLoop();
         }
@@ -213,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(collect==null){
             System.out.println("Create Collect object to manage sensors");
-            collect = new CollectFg(getApplicationContext());
+            collect = new CollectFg(this);
         }
         collect.startServiceStandby();
 

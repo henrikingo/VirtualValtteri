@@ -55,4 +55,8 @@
         <item>off</item>
         <item>race</item>
     </string-array>
+    <string-array name="system_close_key_choices">
+        <item>On</item>
+        <item>Close</item>
+    </string-array>
 </resources>

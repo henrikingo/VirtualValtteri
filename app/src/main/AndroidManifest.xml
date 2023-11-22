@@ -29,6 +29,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:finishOnTaskLaunch="true"
             android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,6 +40,7 @@
         <activity
             android:name=".settings.SettingsActivity"
             android:exported="true"
+            android:finishOnTaskLaunch="true"
             android:screenOrientation="user" >
         </activity>
     </application>

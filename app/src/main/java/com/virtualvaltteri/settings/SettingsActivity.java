@@ -71,6 +71,13 @@ public class SettingsActivity extends AppCompatActivity {
                     collect.startServiceStandby();
                     return true;
                 }
+                if(preference.getKey().equals("system_close_key") && value.equals("Close")){
+                    System.out.println("Closing VirtualValtteri. Reason: User selected Close in Settings.");
+                    // MainActivity will pick up the preference and exit.
+                    //System.exit(0);
+                    setResult(Activity.RESULT_OK,returnIntent);
+                    return true;
+                }
                 return true;
             }
         };
@@ -96,8 +103,17 @@ public class SettingsActivity extends AppCompatActivity {
         mySettingsFragment.sortedDrivers2= sortedDrivers2.toArray(new CharSequence[0]);
         mySettingsFragment.refreshEverything();
         System.out.println("Settings onResume" + sortedDrivers2);
+        //ejection();
     }
 
+    protected  void ejection(){
+        if(mySettingsFragment.closeList.getValue().equals("Close")){
+            System.out.println("ejection");
+            finishAffinity();
+            finishActivity(0);
+            finish();
+        }
+    }
     public void onStop (){
         super.onStop();
         System.out.println("Settings onStop");

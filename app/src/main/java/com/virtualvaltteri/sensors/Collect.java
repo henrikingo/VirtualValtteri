@@ -25,6 +25,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.opencsv.CSVWriter;
+import com.virtualvaltteri.MainActivity;
 import com.virtualvaltteri.R;
 import com.virtualvaltteri.VirtualValtteriService;
 import com.virtualvaltteri.settings.SettingsActivity;
@@ -235,6 +236,8 @@ public class Collect implements SensorEventListenerWrapper {
         stopNotificationTimer();
         this.VVS.stopWebsocketManager();
         this.service.stopSelf(this.VVS.startId);
+        this.service.stopSelf(this.VVS.startId+1);
+        this.service.stopSelf(this.VVS.startId+2);
     }
 
     public void onAccuracyChanged(SensorWrapper sensor, int accuracy){
@@ -402,12 +405,22 @@ public class Collect implements SensorEventListenerWrapper {
                 .setAutoCancel(false)
                 .setColor(Color.rgb(0xff,0xaa, 0x55));
 
+        addActions(builder);
         notification = builder.build();
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
         //Intent notificationIntent = new Intent(service, MainActivity.class);
         //PendingIntent pendingIntent = PendingIntent.getActivity(service,0, notificationIntent, 0);
         service.startForeground(77, notification);
+    }
+
+    private void addActions(NotificationCompat.Builder b){
+        Intent intent = new Intent(VVS, SettingsActivity.class);
+        intent.putExtra("do", "close");
+        intent.putExtra("source", "CreateStandbyNotification.Collect()");
+        PendingIntent pi = PendingIntent.getActivity(VVS, 1, intent, PendingIntent.FLAG_IMMUTABLE);
+        b.clearActions();
+        b.addAction(R.drawable.racinghelmet_small_notification, "Close",pi );
     }
     public void showCollectNotification(String filename){
         System.out.println("showCollectNotification()");
@@ -437,13 +450,10 @@ public class Collect implements SensorEventListenerWrapper {
                 .setOnlyAlertOnce(true)
                 // Set the intent that will fire when the user taps the notification
                 .setContentIntent(pendingIntent);
-
+        addActions(builder);
         notification = builder.build();
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
 
-        // notificationId is a unique int for each notification that you must define
-        //notificationManager.getNotificationChannel("VirtualValtteri");
-        //notificationManager.notify(77, notification);
         service.startForeground(77, notification);
     }
     public String getNotificationString(){
