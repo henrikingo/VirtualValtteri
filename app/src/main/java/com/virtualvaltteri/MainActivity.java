@@ -28,6 +28,8 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import com.virtualvaltteri.sensors.CollectFg;
 import com.virtualvaltteri.settings.SettingsActivity;
 
+import org.w3c.dom.Text;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,12 +38,12 @@ public class MainActivity extends AppCompatActivity {
     public final static String SHARED_PREFS_MAGIC_WORD = "com.virtualvaltteri_preferences";
     public static MainActivity mainActivityInstance;
     private TextView mTextView;
-    private TextView mTextViewLarge;
-    private TextView mTextViewCarNr;
-    private TextView mTextViewPosition;
-    private TextView mTextViewLarge2;
-    private TextView mTextViewCarNr2;
-    private TextView mTextViewPosition2;
+    private TextView[] mTextViewLarge;
+    private TextView[] mTextViewCarNr;
+    private TextView[] mTextViewPosition;
+    private TextView[] mTextViewLarge2;
+    private TextView[] mTextViewCarNr2;
+    private TextView[] mTextViewPosition2;
     private CollectFg collect;
     private String englishMessage;
     @Override
@@ -58,12 +60,36 @@ public class MainActivity extends AppCompatActivity {
         // Initialize UI elements
         setContentView(R.layout.activity_main);
         mTextView = findViewById(R.id.text_view);
-        mTextViewLarge = findViewById(R.id.idLargeText);
-        mTextViewCarNr = findViewById(R.id.idCarNr);
-        mTextViewPosition = findViewById(R.id.idPosition);
-        mTextViewLarge2 = findViewById(R.id.idLargeText2);
-        mTextViewCarNr2 = findViewById(R.id.idCarNr2);
-        mTextViewPosition2 = findViewById(R.id.idPosition2);
+        mTextViewLarge = new TextView[]{
+                findViewById(R.id.idLargeText),
+                findViewById(R.id.driver2_idLargeText),
+                findViewById(R.id.driver3_idLargeText)
+        };
+        mTextViewCarNr = new TextView[]{
+                findViewById(R.id.idCarNr),
+                findViewById(R.id.driver2_idCarNr),
+                findViewById(R.id.driver3_idCarNr)
+        };
+        mTextViewPosition = new TextView[]{
+                findViewById(R.id.idPosition),
+                findViewById(R.id.driver2_idPosition),
+                findViewById(R.id.driver3_idPosition)
+        };
+        mTextViewLarge2 = new TextView[]{
+                findViewById(R.id.idLargeText2),
+                findViewById(R.id.driver2_idLargeText2),
+                findViewById(R.id.driver3_idLargeText2)
+        };
+        mTextViewCarNr2 = new TextView[]{
+                findViewById(R.id.idCarNr2),
+                findViewById(R.id.driver2_idCarNr2),
+                findViewById(R.id.driver3_idCarNr2)
+        };
+        mTextViewPosition2 = new TextView[]{
+                findViewById(R.id.idPosition2),
+                findViewById(R.id.driver2_idPosition2),
+                findViewById(R.id.driver3_idPosition2)
+        };
 
 
         Button settingsBtn = findViewById(R.id.settingsButton);
@@ -158,13 +184,16 @@ public class MainActivity extends AppCompatActivity {
         finishAndRemoveTask();
     }
     private void setColorAll(int color){
-        if(mTextViewPosition==null)
+        setColorAll(color, 0);
+    }
+        private void setColorAll(int color, int driver){
+        if(mTextViewPosition==null || mTextViewPosition[0]==null)
             return;
 
 
-        mTextViewPosition.setTextColor(color);
-        mTextViewCarNr.setTextColor(color);
-        mTextViewLarge.setTextColor(color);
+        mTextViewPosition[driver].setTextColor(color);
+        mTextViewCarNr[driver].setTextColor(color);
+        mTextViewLarge[driver].setTextColor(color);
     }
 
     @Override
@@ -265,21 +294,27 @@ public class MainActivity extends AppCompatActivity {
         unbindService(vvsCallbacks);
     }
 
-    private void rollOldValuesBack()
+    private void rollOldValuesBack(){rollOldValuesBack(0);}
+    private void rollOldValuesBack(int driver)
     {
-        if(mTextViewLarge!=null && mTextViewLarge2!=null)
-            mTextViewLarge2.setText(mTextViewLarge.getText());
-        if(mTextViewCarNr!=null && mTextViewCarNr2!=null)
-            mTextViewCarNr2.setText(mTextViewCarNr.getText());
-        if(mTextViewPosition!=null && mTextViewPosition2!=null)
-            mTextViewPosition2.setText(mTextViewPosition.getText());
+        if(mTextViewLarge[driver]!=null && mTextViewLarge2[driver]!=null)
+            mTextViewLarge2[driver].setText(mTextViewLarge[driver].getText());
+        if(mTextViewCarNr[driver]!=null && mTextViewCarNr2[driver]!=null)
+            mTextViewCarNr2[driver].setText(mTextViewCarNr[driver].getText());
+        if(mTextViewPosition[driver]!=null && mTextViewPosition2[driver]!=null)
+            mTextViewPosition2[driver].setText(mTextViewPosition[driver].getText());
     }
     public void processMesssage(Map<String,String> englishMessageMap) {
         String englishMessage = englishMessageMap.get("message");
-        System.out.println("processMessage " + englishMessageMap);
+        //if(!englishMessage.equals("")) System.out.println("processMessage " + englishMessageMap);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+
+                    int driverSlot = 0;
+                    if(englishMessageMap.containsKey("driverSlot") && mTextViewLarge[1]!=null){
+                        driverSlot = Integer.parseInt( englishMessageMap.get("driverSlot") );
+                    }
 
                     if (englishMessageMap.containsKey("s1")||
                             englishMessageMap.containsKey("s2")||
@@ -289,20 +324,20 @@ public class MainActivity extends AppCompatActivity {
 
                     textViewAppend(englishMessage);
                     if(englishMessageMap.containsKey("s1") && mTextViewLarge!=null)
-                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s1")));
+                        mTextViewLarge[driverSlot].setText(cutDecimal(englishMessageMap.get("s1")));
                     if(englishMessageMap.containsKey("s2") && mTextViewLarge!=null)
-                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("s2")));
+                        mTextViewLarge[driverSlot].setText(cutDecimal(englishMessageMap.get("s2")));
                     if(englishMessageMap.containsKey("lap") && mTextViewLarge!=null)
-                        mTextViewLarge.setText(cutDecimal(englishMessageMap.get("lap")));
+                        mTextViewLarge[driverSlot].setText(cutDecimal(englishMessageMap.get("lap")));
                     if(englishMessageMap.containsKey("carNr") && mTextViewCarNr!=null) {
-                            if (false && !(englishMessageMap.get("carNr").equals(mTextViewCarNr.getText())))
+                            if (false && !(englishMessageMap.get("carNr").equals(mTextViewCarNr[driverSlot].getText())))
                                 // Reset the position field since we don't know the position of the new car
-                                mTextViewPosition.setText("");
-                            mTextViewCarNr.setText(englishMessageMap.get("carNr"));
+                                mTextViewPosition[driverSlot].setText("");
+                            mTextViewCarNr[driverSlot].setText(englishMessageMap.get("carNr"));
                     }
                     // Of course if we have the position, great :-)
                     if(englishMessageMap.containsKey("position") && !englishMessageMap.get("position").equals("") && mTextViewPosition!=null)
-                        mTextViewPosition.setText("P"+englishMessageMap.get("position"));
+                        mTextViewPosition[driverSlot].setText("P"+englishMessageMap.get("position"));
                     if(englishMessageMap.containsKey("time_meta")){
                         if(englishMessageMap.get("time_meta").equals("improved"))
                             setColorAll(getColor(R.color.timeImproved));

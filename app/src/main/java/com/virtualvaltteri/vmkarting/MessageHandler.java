@@ -1,5 +1,7 @@
 package com.virtualvaltteri.vmkarting;
 
+import android.content.res.Resources;
+
 import com.virtualvaltteri.sensors.RaceEventSensor;
 import com.virtualvaltteri.sensors.SensorWrapper;
 import com.virtualvaltteri.speaker.Speaker;
@@ -10,6 +12,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -60,7 +63,7 @@ public class MessageHandler {
             if (parts.length >= 2) {
                 String command = parts[0];
                 String argument = parts[1];
-                System.out.println(line);// + "\n" + command + ", " + argument + ", " + (parts.length >= 3 ? parts[2]: ""));
+                //System.out.println(line);// + "\n" + command + ", " + argument + ", " + (parts.length >= 3 ? parts[2]: ""));
                 //assert this.followDriverNames.equals(collect.VVS.followDriverNames);
                 switch (command) {
                     case "init":
@@ -94,8 +97,8 @@ public class MessageHandler {
                         driverLookup.clear();
                         driverIdLookup.clear();
                         parseInitHtml(parts[2]);
-                        System.out.println(driverIdLookup.toString());
-                        System.out.println(driverLookup.toString());
+                        //System.out.println(driverIdLookup.toString());
+                        //System.out.println(driverLookup.toString());
 
                         System.out.println("followDriverNames " + followDriverNames());
                         englishMessageMap.put("driversCount", "" + driverIdLookup.keySet().size());
@@ -129,15 +132,17 @@ public class MessageHandler {
                     Pattern driverAndCPattern = Pattern.compile("r(\\d+)c(\\d+)");
                     Matcher justDriverMatcher = justDriverPattern.matcher(command);
                     Matcher driverAndCMatcher = driverAndCPattern.matcher(command);
-                    System.out.println("match: "+justDriverMatcher.matches() + " " + driverAndCMatcher.matches());
+                    //System.out.println("match: "+justDriverMatcher.matches() + " " + driverAndCMatcher.matches());
                     if(justDriverMatcher.matches()){
                         String driverId = justDriverMatcher.group(1);
                         DriverState d = getDriverState(driverId, englishMessageMap);
-                        System.out.println("Driver only: " + driverId + " " + d + " " + followThisDriver(d));
+                        //System.out.println("Driver only: " + driverId + " " + d + " " + followThisDriver(d));
                         if(argument.equals("#") && followThisDriver(d)){
                             d.rank = parts[2];
                             String newMessage = speaker.position(d.rank, d);
                             englishMessage.append(newMessage);
+                            englishMessageMap.put("position", d.rank);
+                            englishMessageMap.put("carNr", d.carNr);
                             raceEventSensor.triggerEvent("driver", "position", d.carNr, d.name, d.rank);
                         }
                     }
@@ -146,12 +151,19 @@ public class MessageHandler {
                         String c = driverAndCMatcher.group(2);
                         DriverState d = getDriverState(driverId, englishMessageMap);
 
-                        System.out.println("Driver and Time: " + driverId + " " + c + " " +argument + "    [" + d + "] " + followThisDriver(d));
+                        //System.out.println("Driver and Time: " + driverId + " " + c + " " +argument + "    [" + d + "] " + followThisDriver(d));
                         if(argument.equals("ib") || argument.equals("in"))
                             continue;
 
-                        if(!englishMessageMap.containsKey("carNr") && d!=null && followThisDriver(d))
-                            englishMessageMap.put("carNr", d.carNr);
+                        if(d!=null && followThisDriver(d)) {
+                            if (!englishMessageMap.containsKey("carNr") && d != null && followThisDriver(d)) {
+                                englishMessageMap.put("carNr", d.carNr);
+                            }
+                            ArrayList<String> sortedDriversWeFollow = new ArrayList<>(followDriverNames());
+                            sortedDriversWeFollow.sort(String::compareTo);
+                            int order = sortedDriversWeFollow.indexOf(d.name) % 3;
+                            englishMessageMap.put("driverSlot", String.valueOf(order));
+                        }
 
                         if((c.equals("8")||c.equals("9")) && followThisDriver(d)){
                             englishMessage.append(speaker.lap(parts[2], d));
@@ -192,9 +204,9 @@ public class MessageHandler {
                 }
             }
         }
-        System.out.println(englishMessage);
+        //System.out.println(englishMessage);
         englishMessageMap.put("message", englishMessage.toString());
-        System.out.println(englishMessageMap);
+        //if (!englishMessage.equals("")) System.out.println(englishMessageMap);
         return englishMessageMap;
     }
     private void setTimeMeta(String argument, DriverState d, Map<String, String> englishMessageMap, StringBuilder englishMessage){
@@ -229,7 +241,7 @@ public class MessageHandler {
         return this.collect.VVS.followDriverNames;
     }
     private boolean followThisDriver(DriverState d){
-        System.out.println("Follow this driver: " + followDriverNames());
+        //System.out.println("Follow this driver: " + followDriverNames());
         // If no driver is specified, stay silent
         if (followDriverNames().isEmpty())
             return false;
@@ -246,11 +258,11 @@ public class MessageHandler {
     }
 
     private boolean followAnyDriver(){
-        System.out.println("followDriverNames size: " + followDriverNames().size());
+        //System.out.println("followDriverNames size: " + followDriverNames().size());
         for (String followDriver: followDriverNames()){
-            System.out.println(followDriver);
+            //System.out.println(followDriver);
             for(String sessionDriver: driverIdLookup.keySet()){
-                System.out.println("   " + sessionDriver);
+                //System.out.println("   " + sessionDriver);
                 if(sessionDriver.startsWith(followDriver)){
                     return true;
                 }
@@ -261,8 +273,8 @@ public class MessageHandler {
     private void parseInitHtml(String html){
         String validHtml = "<html><head></head><body><table>"+html+"</table></body></html>";
         Document table = Jsoup.parse(validHtml);
-        System.out.println("JSOUP: "+table);
-        System.out.println("prseInitHTML: "+html);
+        //System.out.println("JSOUP: "+table);
+        //System.out.println("prseInitHTML: "+html);
         Elements rows = table.getElementsByTag("tr");
         int rowcount = 0;
         //System.out.println("html table rows: "+rows);
@@ -294,7 +306,7 @@ public class MessageHandler {
             driver.rank = row.select(".rk div").first().text().toLowerCase();
             driverIdLookup.put(driver.name, driver.id);
             driverLookup.put(driver.id, driver);
-            System.out.println(driver);
+            //System.out.println(driver);
         }
     }
 

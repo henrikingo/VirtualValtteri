@@ -58,7 +58,7 @@ public class SettingsActivity extends AppCompatActivity {
                     ArrayList<CharSequence> csList = new ArrayList<>(Collections.emptyList());
                     SortedSet<CharSequence> sortedValue = new ConcurrentSkipListSet<>((HashSet<CharSequence>)value);
                     for(CharSequence cs: sortedValue){
-                        System.out.println(cs);
+                        //System.out.println(cs);
                         csList.add(cs);
                     }
                     returnIntent.putCharSequenceArrayListExtra("settings_drivers",csList);

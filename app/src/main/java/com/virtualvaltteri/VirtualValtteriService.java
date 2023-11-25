@@ -109,7 +109,7 @@ public class VirtualValtteriService extends Service {
         prefs.registerOnSharedPreferenceChangeListener(new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
-                System.out.println("VVS.onSharedPreferenceChanged");
+                //System.out.println("VVS.onSharedPreferenceChanged");
                 if(refreshing){
                     System.out.println("skipping refresh, already done somewhere else");
                 }
@@ -125,7 +125,7 @@ public class VirtualValtteriService extends Service {
     private void dispatchBundleCommands(Intent intent) {
         String type = intent.getStringExtra("type");
         String doWhat = intent.getStringExtra("do");
-        System.out.println("type: " + type + "    do:" + doWhat);
+        //System.out.println("type: " + type + "    do:" + doWhat);
 
         if(type.equals("com.virtualvaltteri.VirtualValtteriService")){
             if(doWhat.equals("start")){
@@ -323,7 +323,7 @@ public class VirtualValtteriService extends Service {
         if(writeInName!=null)
             writeInName= ((String) writeInName).toLowerCase();
         boolean matchPrefix = prefs.getBoolean("match_writein_prefix_key",false);
-        System.out.println("VVS.updateDrivers: writein name: " + writeInName);
+        //System.out.println("VVS.updateDrivers: writein name: " + writeInName);
         boolean autoFavorite = prefs.getBoolean("auto_favorite_key",false);
 
         //driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
@@ -343,13 +343,13 @@ public class VirtualValtteriService extends Service {
         allDriversInThisSessionSet.addAll(driversNotInThisSession);
         allDriversInThisSessionSet.addAll(followDriversInThisSession);
         CharSequence[] allDriversInThisSession = allDriversInThisSessionSet.toArray(new CharSequence[0]);
-        System.out.println(driversNotInThisSession);
-        System.out.println(followDriversInThisSession);
+        //System.out.println(driversNotInThisSession);
+        //System.out.println(followDriversInThisSession);
 
         CharSequence writeInNameFound = SettingsFragment._matchDriver(sortedDrivers.toArray(new CharSequence[0]), writeInName, matchPrefix, true);
-        System.out.println("VVS.update   Writein name in session: " +writeInNameFound);
+        //System.out.println("VVS.update   Writein name in session: " +writeInNameFound);
         if( writeInName!=null && (!writeInName.equals("")) && writeInNameFound != null){
-            System.out.println("Adding writein driver");
+            //System.out.println("Adding writein driver");
             followDriversInThisSession.add(writeInNameFound.toString());
         }
 
@@ -368,7 +368,7 @@ public class VirtualValtteriService extends Service {
             newFavDrivers.add(s);
         }
 
-        System.out.println("VVS favDrivers: " + favDrivers);
+        // System.out.println("VVS favDrivers: " + favDrivers);
         //favDrivers.addAll(driversNotInThisSession);
         // Add all old follows to favorites, and make them checked/on
        /* System.out.println(autoFavorite);

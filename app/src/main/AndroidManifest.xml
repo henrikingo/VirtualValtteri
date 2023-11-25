@@ -30,7 +30,8 @@
             android:name=".MainActivity"
             android:exported="true"
             android:finishOnTaskLaunch="true"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="user"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

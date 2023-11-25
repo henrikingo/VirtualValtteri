@@ -88,8 +88,8 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     }
 
     public void restoreState(Bundle savedInstanceState){
-        System.out.println(Arrays.asList(sortedDrivers2));
-        System.out.println(savedInstanceState);
+        //System.out.println(Arrays.asList(sortedDrivers2));
+        //System.out.println(savedInstanceState);
         if(savedInstanceState!=null) {
             CharSequence[] newSortedDrivers = savedInstanceState.getCharSequenceArray("sortedDrivers");
             if (newSortedDrivers!=null){
@@ -106,7 +106,6 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     public void onCreatePreferences(@Nullable Bundle savedInstanceState, @Nullable String rootKey) {
         System.out.println("SettingsFragment.onCreate() " + rootKey + " " + savedInstanceState);
         addPreferencesFromResource(R.xml.settings);
-        System.out.println("onCreatePreferences()");
         restoreState(savedInstanceState);
         //this.sortedDrivers = ((SettingsActivity)getActivity()).sortedDriversArray;
         this.prefChanged = ((SettingsActivity)getActivity()).prefChanged;
@@ -153,7 +152,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         if(writeInName!=null)
             writeInName= ((String) writeInName).toLowerCase();
         boolean matchPrefix = ((SwitchPreference)findPreference("match_writein_prefix_key")).isChecked();
-        System.out.println("writein name: " + writeInName);
+        //System.out.println("writein name: " + writeInName);
         boolean autoFavorite = ((SwitchPreference)findPreference("auto_favorite_key")).isChecked();
         // Populate with drivers from the latest race
         driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
@@ -162,13 +161,13 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         Set<String> driversNotInThisSession = driversPreference.getReducedValues(false);
         Set<String> followDriversInThisSession = driversPreference.getReducedValues(true);
         CharSequence[] allDriversInThisSession = driversPreference.getEntryValues();
-        System.out.println(driversNotInThisSession);
-        System.out.println(followDriversInThisSession);
+        //System.out.println(driversNotInThisSession);
+        //System.out.println(followDriversInThisSession);
 
         CharSequence writeInNameFound = driverInSession(writeInName, matchPrefix);
-        System.out.println("Writein name in session: " +writeInNameFound);
+        //System.out.println("Writein name in session: " +writeInNameFound);
         if( writeInName!=null && (!writeInName.equals("")) && writeInNameFound != null){
-            System.out.println("Adding writein driver");
+            //System.out.println("Adding writein driver");
             followDriversInThisSession.add(writeInNameFound.toString());
             driversPreference.setValues(followDriversInThisSession);
         }
@@ -188,23 +187,23 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
             newFavDrivers.add(s);
         }
 
-        System.out.println("favDrivers: " + favDrivers);
+        //System.out.println("favDrivers: " + favDrivers);
         //favDrivers.addAll(driversNotInThisSession);
         // Add all old follows to favorites, and make them checked/on
-        System.out.println(autoFavorite);
+        //System.out.println(autoFavorite);
         if(autoFavorite){
             favoritedDriversPreference.setValues(newFavDrivers);
         }
-        System.out.println(favoritedDriversPreference.getValues());
+        //System.out.println(favoritedDriversPreference.getValues());
         // Otherwise add them to the list but leave them unchecked. They will eventually disappear if not checked.
         favoritedDriversPreference.setEntries((CharSequence[]) newFavDrivers.toArray(new CharSequence[0]));
         favoritedDriversPreference.setEntryValues((CharSequence[]) newFavDrivers.toArray(new CharSequence[0]));
 
 
 
-        System.out.println(favoritedDriversPreference.getValues());
+        //System.out.println(favoritedDriversPreference.getValues());
 
-        System.out.println("newfavDrivers: " + " " + newFavDrivers);
+        //System.out.println("newfavDrivers: " + " " + newFavDrivers);
 
         // In this list we remove items that are unselected
         CharSequence[] allEntries = favoritedDriversPreference.getEntryValues();
@@ -214,7 +213,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                 prunedEntries.add(cs);
             }
         }
-        System.out.println("pruned favorites: " + prunedEntries);
+        //System.out.println("pruned favorites: " + prunedEntries);
         if(prunedEntries.size()>0){
             favoritedDriversPreference.setEntries((CharSequence[]) prunedEntries.toArray(new CharSequence[0]));
             favoritedDriversPreference.setEntryValues((CharSequence[]) prunedEntries.toArray(new CharSequence[0]));
@@ -229,7 +228,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         }
 
         driversPreference.setValues(followDriversInThisSession);
-        System.out.println("driversPreference.getValues "  +driversPreference.getValues());
+        //System.out.println("driversPreference.getValues "  +driversPreference.getValues());
 
 
         favoritedDriversPreference.setSummaryProvider(new Preference.SummaryProvider() {
@@ -239,7 +238,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                 String text = "";
                 StringBuilder builder = new StringBuilder();
                 Set<String> values = ((MultiSelectListPreference)preference).getValues();
-                System.out.println("favoritedDrivers.getSummary() values: " + values);
+                //System.out.println("favoritedDrivers.getSummary() values: " + values);
                 boolean notEmpty = false;
                 for (CharSequence v: values) {
                     if(values.contains(v)) {
@@ -263,7 +262,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         }
 
         closeList = (ListPreference) findPreference("system_close_key");
-        System.out.println(closeList.getValue());
+        //System.out.println(closeList.getValue());
         if(closeList.getValue().equals("Close") && getActivity()!=null){
             getActivity().finishAffinity();
             getActivity().finishActivity(0);
@@ -276,7 +275,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     }
     @Override
     public boolean onPreferenceChange(@NonNull Preference preference, Object newValue) {
-        System.out.println("onPreferenceChange");
+        //System.out.println("onPreferenceChange");
         if(refreshing){
             System.out.println("skipping refresh, already done somewhere else");
         }
@@ -288,14 +287,14 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
             EditTextPreference writeInNamePreference = (EditTextPreference) findPreference("writein_driver_name_key");
             CharSequence writeInName = writeInNamePreference.getText();
             CharSequence writeInNameFound = driverInSession(writeInName, matchPrefix);
-            System.out.println("writein name: " + writeInNameFound);
-            System.out.println("Writein name in session: " +writeInNameFound);
+            //System.out.println("writein name: " + writeInNameFound);
+            //System.out.println("Writein name in session: " +writeInNameFound);
             if( writeInName!=null && (!writeInName.equals("")) && writeInNameFound != null){
-                System.out.println("Adding writein driver v2");
+                //System.out.println("Adding writein driver v2");
                 Set<String> newFollowDrivers = DynamicMultiSelectListPreference.getReducedValuesHelper(true,(Set<String>) newValue,thePref.getEntryValues());
-                System.out.println(newFollowDrivers);
+                //System.out.println(newFollowDrivers);
                 newFollowDrivers.add(writeInNameFound.toString());
-                System.out.println(newFollowDrivers);
+                //System.out.println(newFollowDrivers);
                 driversPreference.setValues(newFollowDrivers);
 
 
@@ -316,14 +315,14 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         if(preference.getKey().equals("writein_driver_name_key")){
             CharSequence writeInName = newValue.toString();
             boolean matchPrefix = ((SwitchPreference)findPreference("match_writein_prefix_key")).isChecked();
-            System.out.println("writein name: " + writeInName);
+            //System.out.println("writein name: " + writeInName);
             driversPreference = (DynamicMultiSelectListPreference) findPreference("drivers_key");
             CharSequence writeInNameFound = driverInSession(writeInName, matchPrefix);
-            System.out.println("Writein name in session: " +writeInNameFound);
+            //System.out.println("Writein name in session: " +writeInNameFound);
             if( writeInName!=null && (!writeInName.equals("")) && writeInNameFound != null){
-                System.out.println("Adding writein driver");
+                //System.out.println("Adding writein driver");
                 Set<String> followDriversInThisSession = driversPreference.getReducedValues(true);
-                System.out.println(followDriversInThisSession);
+                //System.out.println(followDriversInThisSession);
                 followDriversInThisSession.add(writeInNameFound.toString());
                 driversPreference.setValues(followDriversInThisSession);
             }
